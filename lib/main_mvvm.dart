@@ -159,6 +159,8 @@ class MyHomePage extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -178,7 +180,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider(
       create: (context) => AlarmViewModel(AlarmService()),
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
