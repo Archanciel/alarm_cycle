@@ -18,16 +18,12 @@ class SoundService {
   }
 
   void _initializePlayer() async {
-    await _audioPlayer.setSourceAsset('audio/mixkit-city-alert-siren-loop-1008.mp3');
+    await _audioPlayer.setSourceAsset('audio/mixkit-facility-alarm-sound-999.mp3');
   }
 
   Future<void> playAlarmSound() async {
-    // await audioPlayer.setSourceAsset('alarm_sounds/mixkit-city-alert-siren-loop-1008.mp3');
-    // await audioPlayer.play(DeviceFileSource(
-    //     'mixkit-city-alert-siren-loop-1008.mp3'));
-    // await audioPlayer.play(DeviceFileSource(audio.filePathName));
     await _audioPlayer
-        .play(AssetSource('audio/mixkit-city-alert-siren-loop-1008.mp3'));
+        .play(AssetSource('audio/mixkit-facility-alarm-sound-999.mp3'));
   }
 }
 
