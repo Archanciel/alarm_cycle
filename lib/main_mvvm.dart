@@ -2,17 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 const String appName = "Alarm Manager Example";
 const String durationMinutes = "Minutes";
 const String durationHours = "Hours";
 const String periodicAlarm = "periodic";
 
+class SoundService {
+  final AudioPlayer audioPlayer = AudioPlayer();
+
+  Future<void> playAlarmSound() async {
+    await audioPlayer.play(DeviceFileSource(
+        'assets/alarm_sounds/mixkit-city-alert-siren-loop-1008.mp3'));
+  }
+}
+
 class AlarmService {
   static const int _periodicTaskId = 3;
-  
-  static void _periodicTaskCallback() {
+  final SoundService _soundService;
+
+  AlarmService(this._soundService);
+
+  void _periodicTaskCallback() {
     print("Periodic Task Running. Time is ${DateTime.now()}");
+    _soundService.playAlarmSound(); // play the sound
   }
 
   Future<void> schedulePeriodicAlarm(Duration duration) async {
@@ -177,7 +191,7 @@ void main() async {
   await AndroidAlarmManager.initialize();
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AlarmViewModel(AlarmService()),
+      create: (context) => AlarmViewModel(AlarmService(SoundService())),
       child: MyApp(),
     ),
   );
