@@ -10,11 +10,24 @@ const String durationHours = "Hours";
 const String periodicAlarm = "periodic";
 
 class SoundService {
-  final AudioPlayer audioPlayer = AudioPlayer();
+  late AudioPlayer _audioPlayer;
+
+  SoundService() {
+    _audioPlayer = AudioPlayer();
+    _initializePlayer();
+  }
+
+  void _initializePlayer() async {
+    await _audioPlayer.setSourceAsset('audio/mixkit-city-alert-siren-loop-1008.mp3');
+  }
 
   Future<void> playAlarmSound() async {
-    await audioPlayer.play(DeviceFileSource(
-        'assets/alarm_sounds/mixkit-city-alert-siren-loop-1008.mp3'));
+    // await audioPlayer.setSourceAsset('alarm_sounds/mixkit-city-alert-siren-loop-1008.mp3');
+    // await audioPlayer.play(DeviceFileSource(
+    //     'mixkit-city-alert-siren-loop-1008.mp3'));
+    // await audioPlayer.play(DeviceFileSource(audio.filePathName));
+    await _audioPlayer
+        .play(AssetSource('audio/mixkit-city-alert-siren-loop-1008.mp3'));
   }
 }
 
