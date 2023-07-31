@@ -17,8 +17,14 @@ class SoundService {
     _initializePlayer();
   }
 
+  /// Asset definition in pubspec.yaml
+  /// 
+  ///   assets:
+  ///     - assets/audio/
+  /// 
   void _initializePlayer() async {
-    await _audioPlayer.setSourceAsset('audio/mixkit-facility-alarm-sound-999.mp3');
+    await _audioPlayer
+        .setSourceAsset('audio/mixkit-facility-alarm-sound-999.mp3');
   }
 
   Future<void> playAlarmSound() async {
@@ -29,7 +35,7 @@ class SoundService {
 
 class AlarmService {
   static const int _periodicTaskId = 3;
-  static SoundService _soundService = SoundService();
+  static final SoundService _soundService = SoundService();
 
   AlarmService();
 
