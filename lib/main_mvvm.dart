@@ -34,6 +34,13 @@ class SoundService {
 }
 
 class AlarmService {
+  // The AndroidAlarmManager.periodic method requires a callback
+  // function that has no parameters. This is due to the way Dart's
+  // Isolate communicates with the main application. When the callback
+  // function is executed, it does not have access to the state of the
+  // app when the function was scheduled. Therefore, the function and
+  // its parameters should not depend on the instance state of your¨
+  // application, which is why static functions are usually used.
   static const int _periodicTaskId = 3;
   static final SoundService _soundService = SoundService();
 
