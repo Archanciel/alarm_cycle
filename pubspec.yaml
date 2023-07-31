@@ -10,6 +10,7 @@ dependencies:
   android_alarm_manager_plus: ^3.0.1
   flutter:
     sdk: flutter
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:
