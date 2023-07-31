@@ -20,11 +20,11 @@ class SoundService {
 
 class AlarmService {
   static const int _periodicTaskId = 3;
-  final SoundService _soundService;
+  static SoundService _soundService = SoundService();
 
-  AlarmService(this._soundService);
+  AlarmService();
 
-  void _periodicTaskCallback() {
+  static void _periodicTaskCallback() {
     print("Periodic Task Running. Time is ${DateTime.now()}");
     _soundService.playAlarmSound(); // play the sound
   }
@@ -191,7 +191,7 @@ void main() async {
   await AndroidAlarmManager.initialize();
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AlarmViewModel(AlarmService(SoundService())),
+      create: (context) => AlarmViewModel(AlarmService()),
       child: MyApp(),
     ),
   );
