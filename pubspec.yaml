@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   android_alarm_manager_plus: ^3.0.1
+  audioplayers: ^5.0.0
   flutter:
     sdk: flutter
   provider: ^6.0.5
