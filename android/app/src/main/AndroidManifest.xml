@@ -22,7 +22,14 @@
             </intent-filter>
         </receiver>
     </application>
+
+    <!-- rescheduleOnReboot: A boolean parameter of the
+         AndroidAlarmManager.periodic() function. When set to true,
+         the alarm will be rescheduled after the device reboots. The
+         next permission is required to enable this parameter to work !
+    -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
 
