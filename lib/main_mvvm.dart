@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 const String appName = "Alarm Manager Example";
-const String periodicAlarmLabel = "Periodic";
 
 class SoundService {
   late AudioPlayer _audioPlayer;
@@ -65,6 +64,18 @@ class AlarmService {
       );
     }
   }
+
+  Future<void> cancelPeriodicAlarm({
+    required String alarmHHmmPeriodicity,
+    required String startAlarmHHmm,
+  }) async {
+    Duration? parseHHMMDuration =
+        DateTimeParser.parseHHMMDuration(alarmHHmmPeriodicity);
+
+    if (parseHHMMDuration != null) {
+      await AndroidAlarmManager.cancel(periodicTaskId);
+    }
+  }
 }
 
 class AlarmViewModel extends ChangeNotifier {
@@ -77,9 +88,22 @@ class AlarmViewModel extends ChangeNotifier {
     required String startAlarmHHmm,
   }) async {
     print(
-        "********** startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
+        "********** SET startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
 
     await _alarmService.schedulePeriodicAlarm(
+      alarmHHmmPeriodicity: alarmHHmmPeriodicity,
+      startAlarmHHmm: startAlarmHHmm,
+    );
+  }
+
+  Future<void> deletePeriodicAlarm({
+    required String alarmHHmmPeriodicity,
+    required String startAlarmHHmm,
+  }) async {
+    print(
+        "********** DELETE startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
+
+    await _alarmService.cancelPeriodicAlarm(
       alarmHHmmPeriodicity: alarmHHmmPeriodicity,
       startAlarmHHmm: startAlarmHHmm,
     );
@@ -90,6 +114,8 @@ class MyHomePage extends StatelessWidget {
   final String title;
   final String minutesLabel = "Minutes";
   final String hoursLabel = "Hours";
+  final String periodicAlarmLabel = "Periodic";
+  final String deleteAlarmLabel = "Delete";
 
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
@@ -124,7 +150,24 @@ class MyHomePage extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.watch_later_outlined),
-                      label: const Text(periodicAlarmLabel)),
+                      label: Text(periodicAlarmLabel)),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                SizedBox(
+                  width: 112,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                      onPressed: () async {
+                        Provider.of<AlarmViewModel>(context, listen: false)
+                            .deletePeriodicAlarm(
+                          alarmHHmmPeriodicity: '',
+                          startAlarmHHmm: DateTime.now().toString(),
+                        );
+                      },
+                      icon: const Icon(Icons.watch_later_outlined),
+                      label: Text(deleteAlarmLabel)),
                 ),
               ],
             )
