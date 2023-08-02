@@ -69,12 +69,7 @@ class AlarmService {
     required String alarmHHmmPeriodicity,
     required String startAlarmHHmm,
   }) async {
-    Duration? parseHHMMDuration =
-        DateTimeParser.parseHHMMDuration(alarmHHmmPeriodicity);
-
-    if (parseHHMMDuration != null) {
-      await AndroidAlarmManager.cancel(periodicTaskId);
-    }
+    await AndroidAlarmManager.cancel(periodicTaskId);
   }
 }
 
