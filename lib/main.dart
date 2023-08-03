@@ -42,7 +42,7 @@ class MyHomePage extends StatelessWidget {
                       onPressed: () async {
                         String alarmHHmmPeriodicity =
                             await _chooseDuration(context);
-                        Provider.of<AlarmViewModel>(context, listen: false)
+                        Provider.of<AlarmVM>(context, listen: false)
                             .schedulePeriodicAlarm(
                           alarmHHmmPeriodicity: alarmHHmmPeriodicity,
                           startAlarmHHmm: DateTime.now().toString(),
@@ -59,10 +59,9 @@ class MyHomePage extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton.icon(
                       onPressed: () async {
-                        Provider.of<AlarmViewModel>(context, listen: false)
+                        Provider.of<AlarmVM>(context, listen: false)
                             .deletePeriodicAlarm(
-                          alarmHHmmPeriodicity: '',
-                          startAlarmHHmm: DateTime.now().toString(),
+                          alarmId: 1,
                         );
                       },
                       icon: const Icon(Icons.watch_later_outlined),
@@ -187,7 +186,7 @@ void main() async {
   await AndroidAlarmManager.initialize();
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AlarmViewModel(AlarmService()),
+      create: (context) => AlarmVM(AlarmService()),
       child: const MyApp(),
     ),
   );

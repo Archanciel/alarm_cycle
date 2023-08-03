@@ -1,6 +1,7 @@
 import 'package:alarm_cycle/services/sound_service.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
+import '../models/alarm.dart';
 import '../util/date_time_parser.dart';
 
 class AlarmService {
@@ -11,7 +12,6 @@ class AlarmService {
   // app when the function was scheduled. Therefore, the function and
   // its parameters should not depend on the instance state of your
   // application, which is why static functions are usually used.
-  static const int periodicTaskId = 3;
   static final SoundService staticSoundService = SoundService();
 
   static void periodicTaskCallbackFunction() {
@@ -20,25 +20,24 @@ class AlarmService {
   }
 
   Future<void> schedulePeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
+    required Alarm alarm,
   }) async {
     Duration? parseHHMMDuration =
-        DateTimeParser.parseHHMMDuration(alarmHHmmPeriodicity);
+        DateTimeParser.parseHHMMDuration(alarm.alarmHHmmPeriodicity);
 
     if (parseHHMMDuration != null) {
       await AndroidAlarmManager.periodic(
         parseHHMMDuration,
-        periodicTaskId,
+        alarm.alarmId,
         periodicTaskCallbackFunction,
+        startAt: alarm.startAlarmDateTime,
       );
     }
   }
 
   Future<void> cancelPeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
+    required int alarmId,
   }) async {
-    await AndroidAlarmManager.cancel(periodicTaskId);
+    await AndroidAlarmManager.cancel(alarmId);
   }
 }
