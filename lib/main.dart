@@ -85,6 +85,7 @@ class MyHomePage extends StatelessWidget {
                   child: ElevatedButton.icon(
                       onPressed: () async {
                         Provider.of<AlarmVM>(context, listen: false)
+
                             .deletePeriodicAlarm(
                           alarmId: 1,
                         );
@@ -214,6 +215,18 @@ class MyHomePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                Row(
+                  children: [
+                    const Text(
+                      'Alarm ID: ',
+                      style: TextStyle(fontSize: 15, ),
+                    ),
+                    Text(
+                      alarm.alarmId.toString(),
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ],
+                ),
                 Row(
                   children: [
                     const Text(
