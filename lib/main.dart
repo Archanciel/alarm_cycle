@@ -34,6 +34,9 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
+            const SizedBox(
+              height: 15,
+            ),
             Text(
               alarmListLabel,
               style:
