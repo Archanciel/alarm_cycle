@@ -6,7 +6,7 @@ import '../util/date_time_parser.dart';
 
 class AlarmVM extends ChangeNotifier {
   final AlarmService _alarmService;
-  int _lastAlarmId = 2;
+  int _lastAlarmId = 1;
   List<Alarm> _alarmLst = [];
   List<Alarm> get alarmLst => _alarmLst;
   int _selectedAlarmId = 0;
@@ -49,6 +49,8 @@ class AlarmVM extends ChangeNotifier {
     );
 
     _alarmLst.removeWhere((alarm) => alarm.alarmId == alarmId);
+
+    notifyListeners();
   }
 
   void editAlarm({

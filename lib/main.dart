@@ -20,6 +20,7 @@ class MyHomePage extends StatelessWidget {
   final String deleteAlarmLabel = "Delete";
   final String addAlarmLabel = "Add Alarm";
   final String editAlarmLabel = "Edit Alarm";
+  final String alarmListLabel = "Alarms";
 
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
@@ -33,9 +34,10 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            const Text(
-              appName,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+            Text(
+              alarmListLabel,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
             ),
             Expanded(
               child: Consumer<AlarmVM>(
@@ -49,7 +51,7 @@ class MyHomePage extends StatelessWidget {
                         title: Text(alarm.title),
                         subtitle: Text(alarm.description),
                         onTap: () {
-                          _showAlarmDetails(context, alarm);
+                          _showAlarmDetailsDialog(context, alarm);
                         },
                       );
                     },
@@ -57,45 +59,9 @@ class MyHomePage extends StatelessWidget {
                 },
               ),
             ),
-            Column(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: 112,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                      onPressed: () async {
-                        String alarmHHmmPeriodicity =
-                            await _chooseDuration(context);
-                        Provider.of<AlarmVM>(context, listen: false)
-                            .schedulePeriodicAlarm(
-                          alarmHHmmPeriodicity: alarmHHmmPeriodicity,
-                          startAlarmHHmm: DateTime.now().toString(),
-                        );
-                      },
-                      icon: const Icon(Icons.watch_later_outlined),
-                      label: Text(periodicAlarmLabel)),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                SizedBox(
-                  width: 112,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                      onPressed: () async {
-                        Provider.of<AlarmVM>(context, listen: false)
-
-                            .deletePeriodicAlarm(
-                          alarmId: 1,
-                        );
-                      },
-                      icon: const Icon(Icons.watch_later_outlined),
-                      label: Text(deleteAlarmLabel)),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
                 SizedBox(
                   width: 112,
                   height: 50,
@@ -107,7 +73,7 @@ class MyHomePage extends StatelessWidget {
                       label: Text(addAlarmLabel)),
                 ),
                 const SizedBox(
-                  height: 5,
+                  width: 5,
                 ),
                 SizedBox(
                   width: 112,
@@ -120,90 +86,68 @@ class MyHomePage extends StatelessWidget {
                       label: Text(editAlarmLabel)),
                 ),
                 const SizedBox(
-                  height: 5,
+                  width: 5,
+                ),
+                SizedBox(
+                  width: 112,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                      onPressed: () async {
+                        _showDeleteAlarmDialog(context);
+                      },
+                      icon: const Icon(Icons.watch_later_outlined),
+                      label: Text(deleteAlarmLabel)),
                 ),
               ],
-            )
+            ),
+            const SizedBox(
+              height: 15,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Future<String> _chooseDuration(BuildContext context) async {
-    String alarmPeriodicityHHmmStr = '';
-    String? alarmPeriodicityValueTypeStr;
-
-    String? enteredText = await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Enter a number for the duration"),
-            content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: RadioListTile(
-                          title: Text(minutesLabel),
-                          value: minutesLabel,
-                          groupValue: alarmPeriodicityValueTypeStr,
-                          onChanged: (String? value) {
-                            setState(
-                                () => alarmPeriodicityValueTypeStr = value);
-                          }),
-                    ),
-                    Expanded(
-                      child: RadioListTile(
-                          title: Text(hoursLabel),
-                          value: hoursLabel,
-                          groupValue: alarmPeriodicityValueTypeStr,
-                          onChanged: (String? value) {
-                            setState(
-                                () => alarmPeriodicityValueTypeStr = value);
-                          }),
-                    ),
-                    TextField(
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly
-                      ],
-                      onChanged: (String value) {
-                        alarmPeriodicityHHmmStr = value;
-                      },
-                      decoration: const InputDecoration(
-                        hintText: "Enter a number",
-                      ),
-                    ),
-                  ],
-                );
+  void _showDeleteAlarmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String alarmId = '';
+        return AlertDialog(
+          title: const Text('Delete Alarm'),
+          content: TextField(
+            onChanged: (value) {
+              alarmId = value;
+            },
+            decoration: const InputDecoration(
+              hintText: 'Enter Alarm ID',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
               },
             ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, null);
-                },
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(
-                      context,
-                      alarmPeriodicityValueTypeStr! +
-                          ':' +
-                          alarmPeriodicityHHmmStr);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        });
-    return enteredText ?? '';
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () {
+                Provider.of<AlarmVM>(context, listen: false)
+                    .deletePeriodicAlarm(
+                  alarmId: int.parse(alarmId),
+                );
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _showAlarmDetails(BuildContext context, Alarm alarm) {
+  void _showAlarmDetailsDialog(BuildContext context, Alarm alarm) {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -219,7 +163,9 @@ class MyHomePage extends StatelessWidget {
                   children: [
                     const Text(
                       'Alarm ID: ',
-                      style: TextStyle(fontSize: 15, ),
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
                     ),
                     Text(
                       alarm.alarmId.toString(),
@@ -231,7 +177,9 @@ class MyHomePage extends StatelessWidget {
                   children: [
                     const Text(
                       'Description: ',
-                      style: TextStyle(fontSize: 15, ),
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
                     ),
                     Text(
                       alarm.description,
