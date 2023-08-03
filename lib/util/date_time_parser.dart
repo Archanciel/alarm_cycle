@@ -5,9 +5,9 @@ extension FormattedDayHourMinute on Duration {
   static final NumberFormat numberFormatTwoInt = NumberFormat('00');
 
   // ignore: non_constant_identifier_names
-  
+
   /// Returns the Duration formatted as HH:mm.
-  /// 
+  ///
   /// This method is added to the Duration class by the extension
   /// FormattedDayHourMinute class located in date_time_parser.dart.
   String HHmm() {
@@ -22,7 +22,7 @@ extension FormattedDayHourMinute on Duration {
   }
 
   /// Returns the Duration formatted as dd:HH:mm
-  /// 
+  ///
   /// This method is added to the Duration class by the extension
   /// FormattedDayHourMinute class located in date_time_parser.dart.
   String ddHHmm() {
@@ -155,7 +155,7 @@ class DateTimeParser {
   }
 
   /// Obtained from Circadian project Utility class.
-  /// 
+  ///
   /// Method used to format the entered string duration
   /// to the duration TextField format, either HH:mm or
   /// dd:HH:mm. The method enables entering an int
@@ -491,13 +491,11 @@ class DateTimeParser {
     String? englishFormatDateTimeStr;
 
     try {
-      endDateTime =
-          frenchDateTimeFormat.parse(frenchFormatDateTimeStr);
+      endDateTime = frenchDateTimeFormat.parse(frenchFormatDateTimeStr);
     } on FormatException {}
 
     if (endDateTime != null) {
-      englishFormatDateTimeStr =
-          englishDateTimeFormat.format(endDateTime);
+      englishFormatDateTimeStr = englishDateTimeFormat.format(endDateTime);
     }
 
     return englishFormatDateTimeStr;
@@ -512,13 +510,11 @@ class DateTimeParser {
     String? frenchFormatDateTimeStr;
 
     try {
-      endDateTime =
-          englishDateTimeFormat.parse(englishFormatDateTimeStr);
+      endDateTime = englishDateTimeFormat.parse(englishFormatDateTimeStr);
     } on FormatException {}
 
     if (endDateTime != null) {
-      frenchFormatDateTimeStr =
-          frenchDateTimeFormat.format(endDateTime);
+      frenchFormatDateTimeStr = frenchDateTimeFormat.format(endDateTime);
     }
 
     return frenchFormatDateTimeStr;

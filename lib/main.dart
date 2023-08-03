@@ -1,109 +1,13 @@
 // https://github.com/bluefireteam/audioplayers/blob/main/getting_started.md
 
-import 'package:alarm_cycle/util/date_time_parser.dart';
+import 'package:alarm_cycle/services/alarm_service.dart';
+import 'package:alarm_cycle/viewmodels/alarm_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 const String appName = "Alarm Manager Example";
-
-class SoundService {
-  late AudioPlayer _audioPlayer;
-
-  SoundService() {
-    _audioPlayer = AudioPlayer();
-    _initializePlayer();
-  }
-
-  /// Asset definition in pubspec.yaml
-  ///
-  ///   assets:
-  ///     - assets/audio/
-  ///
-  void _initializePlayer() async {
-    await _audioPlayer
-        .setSourceAsset('audio/mixkit-facility-alarm-sound-999.mp3');
-  }
-
-  Future<void> playAlarmSound() async {
-    await _audioPlayer
-        .play(AssetSource('audio/mixkit-facility-alarm-sound-999.mp3'));
-  }
-}
-
-class AlarmService {
-  // The AndroidAlarmManager.periodic method requires a callback
-  // function that has no parameters. This is due to the way Dart's
-  // Isolate communicates with the main application. When the callback
-  // function is executed, it does not have access to the state of the
-  // app when the function was scheduled. Therefore, the function and
-  // its parameters should not depend on the instance state of your
-  // application, which is why static functions are usually used.
-  static const int periodicTaskId = 3;
-  static final SoundService staticSoundService = SoundService();
-
-  static void periodicTaskCallbackFunction() {
-    print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundService.playAlarmSound();
-  }
-
-  Future<void> schedulePeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
-  }) async {
-    Duration? parseHHMMDuration =
-        DateTimeParser.parseHHMMDuration(alarmHHmmPeriodicity);
-
-    if (parseHHMMDuration != null) {
-      await AndroidAlarmManager.periodic(
-        parseHHMMDuration,
-        periodicTaskId,
-        periodicTaskCallbackFunction,
-      );
-    }
-  }
-
-  Future<void> cancelPeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
-  }) async {
-    await AndroidAlarmManager.cancel(periodicTaskId);
-  }
-}
-
-class AlarmViewModel extends ChangeNotifier {
-  final AlarmService _alarmService;
-
-  AlarmViewModel(this._alarmService);
-
-  Future<void> schedulePeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
-  }) async {
-    print(
-        "********** SET startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
-
-    await _alarmService.schedulePeriodicAlarm(
-      alarmHHmmPeriodicity: alarmHHmmPeriodicity,
-      startAlarmHHmm: startAlarmHHmm,
-    );
-  }
-
-  Future<void> deletePeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
-  }) async {
-    print(
-        "********** DELETE startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
-
-    await _alarmService.cancelPeriodicAlarm(
-      alarmHHmmPeriodicity: alarmHHmmPeriodicity,
-      startAlarmHHmm: startAlarmHHmm,
-    );
-  }
-}
 
 class MyHomePage extends StatelessWidget {
   final String title;
