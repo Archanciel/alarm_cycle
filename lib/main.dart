@@ -47,12 +47,28 @@ class MyHomePage extends StatelessWidget {
                     itemCount: alarmsMap.length,
                     itemBuilder: (context, index) {
                       Alarm alarm = alarmsLst[index];
-                      return ListTile(
-                        title: Text(alarm.title),
-                        subtitle: Text(alarm.description),
-                        onTap: () {
-                          _showAlarmDetailsDialog(context, alarm);
-                        },
+                      final color =
+                          Colors.primaries[index % Colors.primaries.length];
+                      final bool isAlarmSelected =
+                          alarmVM.selectedAlarmId == alarm.alarmId;
+                      return Container(
+                        color: isAlarmSelected ? color.withOpacity(0.3) : null,
+                        child: ListTile(
+                          title: Text(
+                            alarm.title,
+                            style: TextStyle(color: color),
+                          ),
+                          subtitle: Text(
+                            alarm.description,
+                            style: TextStyle(color: color),
+                          ),
+                          onTap: () {
+                            alarmVM.selectAlarm(
+                              alarmId: alarm.alarmId,
+                            );
+                            _showAlarmDetailsDialog(context, alarm);
+                          },
+                        ),
                       );
                     },
                   );
@@ -293,7 +309,7 @@ class MyHomePage extends StatelessWidget {
     TextEditingController titleController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
-    Alarm selectedAlarm = alarmVM.selectedAlarm();
+    Alarm selectedAlarm = alarmVM.getSelectedAlarm();
     titleController.text = selectedAlarm.title;
     descriptionController.text = selectedAlarm.description;
     showDialog(

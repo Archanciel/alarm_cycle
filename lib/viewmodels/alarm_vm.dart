@@ -10,6 +10,7 @@ class AlarmVM extends ChangeNotifier {
   final Map<int, Alarm> _alarmsMap = {};
   Map<int, Alarm> get alarmsMap => _alarmsMap;
   int _selectedAlarmId = 0;
+  int get selectedAlarmId => _selectedAlarmId;
   set selectedAlarmId(int alarmId) {
     _selectedAlarmId = alarmId;
 
@@ -80,7 +81,15 @@ class AlarmVM extends ChangeNotifier {
     alarm.description = description;
   }
 
-  Alarm selectedAlarm() {
+  Alarm getSelectedAlarm() {
     return _alarmsMap[_selectedAlarmId]!;
+  }
+
+  void selectAlarm({
+    required alarmId,
+  }) {
+    _selectedAlarmId = alarmId;
+
+    notifyListeners();
   }
 }
