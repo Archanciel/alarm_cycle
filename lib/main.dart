@@ -126,19 +126,32 @@ class MyHomePage extends StatelessWidget {
   }
 
   void _showDeleteAlarmDialog(BuildContext context) {
+    AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
+    Alarm selectedAlarm = alarmVM.getSelectedAlarm();
     showDialog(
       context: context,
       builder: (BuildContext context) {
         String alarmId = '';
         return AlertDialog(
           title: const Text('Delete Alarm'),
-          content: TextField(
-            onChanged: (value) {
-              alarmId = value;
-            },
-            decoration: const InputDecoration(
-              hintText: 'Enter Alarm ID',
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  selectedAlarm.title,
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  selectedAlarm.description,
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ),
+            ],
           ),
           actions: <Widget>[
             TextButton(
