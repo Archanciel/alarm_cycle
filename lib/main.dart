@@ -5,19 +5,15 @@ import 'package:alarm_cycle/util/date_time_parser.dart';
 import 'package:alarm_cycle/viewmodels/alarm_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'models/alarm.dart';
 
-const String appName = "Alarm Manager Example";
+const String appName = "Periodic Alarm Manager";
 
 class MyHomePage extends StatelessWidget {
   final String title;
-  final String minutesLabel = "Minutes";
-  final String hoursLabel = "Hours";
-  final String periodicAlarmLabel = "Periodic";
-  final String deleteAlarmLabel = "Delete";
+  final String deleteAlarmLabel = "Delete Alarm";
   final String addAlarmLabel = "Add Alarm";
   final String editAlarmLabel = "Edit Alarm";
   final String alarmListLabel = "Alarms";
@@ -45,11 +41,12 @@ class MyHomePage extends StatelessWidget {
             Expanded(
               child: Consumer<AlarmVM>(
                 builder: (context, alarmVM, child) {
-                  List<Alarm> alarms = alarmVM.alarmLst;
+                  Map<int, Alarm> alarmsMap = alarmVM.alarmsMap;
+                  List<Alarm> alarmsLst = alarmsMap.values.toList();
                   return ListView.builder(
-                    itemCount: alarms.length,
+                    itemCount: alarmsMap.length,
                     itemBuilder: (context, index) {
-                      Alarm alarm = alarms[index];
+                      Alarm alarm = alarmsLst[index];
                       return ListTile(
                         title: Text(alarm.title),
                         subtitle: Text(alarm.description),
@@ -98,7 +95,7 @@ class MyHomePage extends StatelessWidget {
                       onPressed: () async {
                         _showDeleteAlarmDialog(context);
                       },
-                      icon: const Icon(Icons.watch_later_outlined),
+                      icon: const Icon(Icons.delete),
                       label: Text(deleteAlarmLabel)),
                 ),
               ],
@@ -137,8 +134,7 @@ class MyHomePage extends StatelessWidget {
             TextButton(
               child: const Text('Delete'),
               onPressed: () {
-                Provider.of<AlarmVM>(context, listen: false)
-                    .deletePeriodicAlarm(
+                Provider.of<AlarmVM>(context, listen: false).deleteAlarm(
                   alarmId: int.parse(alarmId),
                 );
                 Navigator.of(context).pop();
