@@ -79,6 +79,8 @@ class AlarmVM extends ChangeNotifier {
 
     alarm.title = title;
     alarm.description = description;
+
+    notifyListeners();
   }
 
   Alarm getSelectedAlarm() {
