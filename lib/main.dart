@@ -16,6 +16,7 @@ class MyHomePage extends StatelessWidget {
   final String deleteAlarmLabel = "Delete Alarm";
   final String addAlarmLabel = "Add Alarm";
   final String editAlarmLabel = "Edit Alarm";
+  final String detailAlarmLabel = "Detail Alarm";
   final String alarmListLabel = "Alarms";
 
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -66,7 +67,7 @@ class MyHomePage extends StatelessWidget {
                             alarmVM.selectAlarm(
                               alarmId: alarm.alarmId,
                             );
-                            _showAlarmDetailsDialog(context, alarm);
+                            // _showAlarmDetailsDialog(context, alarm);
                           },
                         ),
                       );
@@ -75,7 +76,7 @@ class MyHomePage extends StatelessWidget {
                 },
               ),
             ),
-            Row(
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
@@ -89,7 +90,20 @@ class MyHomePage extends StatelessWidget {
                       label: Text(addAlarmLabel)),
                 ),
                 const SizedBox(
-                  width: 5,
+                  height: 5,
+                ),
+                SizedBox(
+                  width: 112,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                      onPressed: () async {
+                        _showDetailsAlarmDialog(context);
+                      },
+                      icon: const Icon(Icons.details),
+                      label: Text(detailAlarmLabel)),
+                ),
+                const SizedBox(
+                  height: 5,
                 ),
                 SizedBox(
                   width: 112,
@@ -102,7 +116,7 @@ class MyHomePage extends StatelessWidget {
                       label: Text(editAlarmLabel)),
                 ),
                 const SizedBox(
-                  width: 5,
+                  height: 5,
                 ),
                 SizedBox(
                   width: 112,
@@ -113,6 +127,9 @@ class MyHomePage extends StatelessWidget {
                       },
                       icon: const Icon(Icons.delete),
                       label: Text(deleteAlarmLabel)),
+                ),
+                const SizedBox(
+                  height: 5,
                 ),
               ],
             ),
@@ -131,28 +148,9 @@ class MyHomePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String alarmId = '';
         return AlertDialog(
           title: const Text('Delete Alarm'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  selectedAlarm.title,
-                  style: const TextStyle(fontSize: 15),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  selectedAlarm.description,
-                  style: const TextStyle(fontSize: 15),
-                ),
-              ),
-            ],
-          ),
+          content: _buildDisplayedAlarm(selectedAlarm),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -162,9 +160,9 @@ class MyHomePage extends StatelessWidget {
             ),
             TextButton(
               child: const Text('Delete'),
-              onPressed: () {
-                Provider.of<AlarmVM>(context, listen: false).deleteAlarm(
-                  alarmId: int.parse(alarmId),
+              onPressed: () async {
+                await Provider.of<AlarmVM>(context, listen: false).deleteAlarm(
+                  alarmId: selectedAlarm.alarmId,
                 );
                 Navigator.of(context).pop();
               },
@@ -175,74 +173,16 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  void _showAlarmDetailsDialog(BuildContext context, Alarm alarm) {
+  void _showDetailsAlarmDialog(BuildContext context) {
+    AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
+    Alarm selectedAlarm = alarmVM.getSelectedAlarm();
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text(alarm.title),
+            title: Text(selectedAlarm.title),
             // content: Text(alarm.description),
-            content: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  children: [
-                    const Text(
-                      'Alarm ID: ',
-                      style: TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      alarm.alarmId.toString(),
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text(
-                      'Description: ',
-                      style: TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      alarm.description,
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text(
-                      'Periodicity: ',
-                      style: TextStyle(fontSize: 15),
-                    ),
-                    Text(
-                      alarm.alarmHHmmPeriodicity,
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text(
-                      'Start date tine: ',
-                      style: TextStyle(fontSize: 15),
-                    ),
-                    Text(
-                      DateTimeParser.englishDateTimeFormat
-                          .format(alarm.startAlarmDateTime),
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
+            content: _buildDisplayedAlarm(selectedAlarm),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -255,6 +195,70 @@ class MyHomePage extends StatelessWidget {
         });
   }
 
+  /// Build non editable alarm details
+  Column _buildDisplayedAlarm(Alarm selectedAlarm) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Row(
+          children: [
+            const Text(
+              'Alarm ID: ',
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              selectedAlarm.alarmId.toString(),
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            const Text(
+              'Description: ',
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              selectedAlarm.description,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            const Text(
+              'Periodicity: ',
+              style: TextStyle(fontSize: 15),
+            ),
+            Text(
+              selectedAlarm.alarmHHmmPeriodicity,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            const Text(
+              'Start date tine: ',
+              style: TextStyle(fontSize: 15),
+            ),
+            Text(
+              DateTimeParser.englishDateTimeFormat
+                  .format(selectedAlarm.startAlarmDateTime),
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   void _showAddAlarmDialog(BuildContext context) {
     TextEditingController titleController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
@@ -265,34 +269,11 @@ class MyHomePage extends StatelessWidget {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Add Alarm'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    hintText: 'Title',
-                  ),
-                ),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    hintText: 'Description',
-                  ),
-                ),
-                TextField(
-                  controller: periodicityController,
-                  decoration: const InputDecoration(
-                    hintText: 'HH:mm periodicity',
-                  ),
-                ),
-                TextField(
-                  controller: startTimeController,
-                  decoration: const InputDecoration(
-                    hintText: 'Alarm start HH:mm time',
-                  ),
-                ),
-              ],
+            content: _buildEditableAlarm(
+              titleController: titleController,
+              descriptionController: descriptionController,
+              periodicityController: periodicityController,
+              startTimeController: startTimeController,
             ),
             actions: <Widget>[
               TextButton(
@@ -318,34 +299,65 @@ class MyHomePage extends StatelessWidget {
         });
   }
 
+  Column _buildEditableAlarm({
+    required TextEditingController titleController,
+    required TextEditingController descriptionController,
+    required TextEditingController periodicityController,
+    required TextEditingController startTimeController,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        TextField(
+          controller: titleController,
+          decoration: const InputDecoration(
+            hintText: 'Title',
+          ),
+        ),
+        TextField(
+          controller: descriptionController,
+          decoration: const InputDecoration(
+            hintText: 'Description',
+          ),
+        ),
+        TextField(
+          controller: periodicityController,
+          decoration: const InputDecoration(
+            hintText: 'HH:mm periodicity',
+          ),
+        ),
+        TextField(
+          controller: startTimeController,
+          decoration: const InputDecoration(
+            hintText: 'Alarm start HH:mm time',
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showEditAlarmDialog(BuildContext context) {
     TextEditingController titleController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
+    TextEditingController periodicityController = TextEditingController();
+    TextEditingController startTimeController = TextEditingController();
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
     Alarm selectedAlarm = alarmVM.getSelectedAlarm();
     titleController.text = selectedAlarm.title;
     descriptionController.text = selectedAlarm.description;
+    periodicityController.text = selectedAlarm.alarmHHmmPeriodicity;
+    startTimeController.text = DateTimeParser.englishDateTimeFormat
+        .format(selectedAlarm.startAlarmDateTime);
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Edit Alarm'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  hintText: 'Title',
-                ),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                  hintText: 'Description',
-                ),
-              ),
-            ],
+          content: _buildEditableAlarm(
+            titleController: titleController,
+            descriptionController: descriptionController,
+            periodicityController: periodicityController,
+            startTimeController: startTimeController,
           ),
           actions: <Widget>[
             TextButton(

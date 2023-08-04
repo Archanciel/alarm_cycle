@@ -47,7 +47,7 @@ class AlarmVM extends ChangeNotifier {
     _alarmsMap[alarmId] = alarm;
 
     print(
-        "********** SET startAlarmHHmm: ${DateTimeParser.englishDateTimeFormat.format(alarm.startAlarmDateTime)}\n********** alarmHHmmPeriodicity: ${alarm.alarmHHmmPeriodicity}");
+        "********** SET alarmId: $alarmId\n********** startAlarmHHmm: ${DateTimeParser.englishDateTimeFormat.format(alarm.startAlarmDateTime)}\n********** alarmHHmmPeriodicity: ${alarm.alarmHHmmPeriodicity}");
 
     await _alarmService.schedulePeriodicAlarm(
       alarm: alarm,
@@ -90,7 +90,12 @@ class AlarmVM extends ChangeNotifier {
   void selectAlarm({
     required alarmId,
   }) {
-    _selectedAlarmId = alarmId;
+    if (_selectedAlarmId == alarmId) {
+      // Deselect alarm if tapping on already selected alarm
+      _selectedAlarmId = 0;
+    } else {
+      _selectedAlarmId = alarmId;
+    }
 
     notifyListeners();
   }
