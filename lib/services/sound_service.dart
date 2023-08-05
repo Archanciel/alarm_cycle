@@ -2,11 +2,7 @@
 import 'package:audioplayers/audioplayers.dart';
 
 class SoundService {
-  late AudioPlayer _audioPlayer;
-
-  SoundService() {
-    _audioPlayer = AudioPlayer();
-  }
+  static final AudioPlayer _audioPlayer = AudioPlayer();
 
   /// Asset definition in pubspec.yaml
   ///
