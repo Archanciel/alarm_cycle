@@ -29,21 +29,21 @@ class AlarmService {
   ];
 
   static void periodicTaskCallbackFunctionOne() {
-    print("*********** Periodic Task Running. Time is ${DateTime.now()}\n*********** sound: ${availableSoundAssetPaths[0]}");
+    print("*** Periodic task running at ${DateTime.now()}\n*** Sound: ${availableSoundAssetPaths[0]}");
     staticSoundServiceOne.playAlarmSound(
       soundAssetPath: availableSoundAssetPaths[0],
     );
   }
 
   static void periodicTaskCallbackFunctionTwo() {
-    print("*********** Periodic Task Running. Time is ${DateTime.now()}\n*********** sound: ${availableSoundAssetPaths[1]}");
+    print("*** Periodic task running at ${DateTime.now()}\n*** Sound: ${availableSoundAssetPaths[1]}");
     staticSoundServiceTwo.playAlarmSound(
       soundAssetPath: availableSoundAssetPaths[1],
     );
   }
 
   static void periodicTaskCallbackFunctionThree() {
-    print("*********** Periodic Task Running. Time is ${DateTime.now()}\n*********** sound: ${availableSoundAssetPaths[2]}");
+    print("*** Periodic task running at ${DateTime.now()}\n*** Sound: ${availableSoundAssetPaths[2]}");
     staticSoundServiceThree.playAlarmSound(
       soundAssetPath: availableSoundAssetPaths[2],
     );
@@ -58,7 +58,7 @@ class AlarmService {
   Future<void> schedulePeriodicAlarm({
     required Alarm alarm,
   }) async {
-    staticSoundServiceList[alarm.alarmId % 4].setSoundAssetPath(
+    staticSoundServiceList[alarm.alarmId % 3].setSoundAssetPath(
       soundAssetPath: alarm.soundAssetPath,
     );
 
@@ -69,7 +69,8 @@ class AlarmService {
       await AndroidAlarmManager.periodic(
         parseHHMMDuration,
         alarm.alarmId,
-        periodicTaskCallbackFunctionList[alarm.alarmId % 4],
+        periodicTaskCallbackFunctionList[alarm.alarmId % 3],
+        exact: true,
         startAt: alarm.startAlarmDateTime,
       );
     }
