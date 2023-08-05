@@ -256,14 +256,19 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
         Row(
+          // label and multiline soundAssetPath text
+          // are vertically aligned
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Sound file: ',
               style: TextStyle(fontSize: 15),
             ),
-            Text(
-              selectedAlarm.soundAssetPath,
-              style: const TextStyle(fontSize: 15),
+            Flexible( // Wrap long text on multiple lines
+              child: Text(
+                selectedAlarm.soundAssetPath,
+                style: const TextStyle(fontSize: 15),
+              ),
             ),
           ],
         ),
