@@ -1,4 +1,3 @@
-// BEGIN: ed8c6549bwf9
 import 'package:audioplayers/audioplayers.dart';
 
 class SoundService {
@@ -14,14 +13,13 @@ class SoundService {
   void setSoundAssetPath({
     required String soundAssetPath,
   }) async {
-    _soundAssetPath = soundAssetPath;
-    await _audioPlayer.setSourceAsset(soundAssetPath);
+    // await _audioPlayer.setSourceAsset(soundAssetPath);
   }
 
-  Future<void> playAlarmSound() async {
+  Future<void> playAlarmSound({
+    required String soundAssetPath,
+  } ) async {
     await _audioPlayer
-        .play(AssetSource(_soundAssetPath));
+        .play(AssetSource(soundAssetPath));
   }
 }
-
-// END: ed8c6549bwf9

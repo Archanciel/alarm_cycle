@@ -32,7 +32,7 @@ class MyHomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             const SizedBox(
-              height: 15,
+              height: 30,
             ),
             Text(
               alarmListLabel,
@@ -134,7 +134,7 @@ class MyHomePage extends StatelessWidget {
               ],
             ),
             const SizedBox(
-              height: 15,
+              height: 30,
             ),
           ],
         ),
@@ -144,7 +144,14 @@ class MyHomePage extends StatelessWidget {
 
   void _showDeleteAlarmDialog(BuildContext context) {
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
-    Alarm selectedAlarm = alarmVM.getSelectedAlarm();
+    Alarm? selectedAlarm = alarmVM.getSelectedAlarm();
+
+    if (selectedAlarm == null) {
+      _handleNullSelectedsAlarm(context);
+
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -175,7 +182,14 @@ class MyHomePage extends StatelessWidget {
 
   void _showDetailsAlarmDialog(BuildContext context) {
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
-    Alarm selectedAlarm = alarmVM.getSelectedAlarm();
+    Alarm? selectedAlarm = alarmVM.getSelectedAlarm();
+
+    if (selectedAlarm == null) {
+      _handleNullSelectedsAlarm(context);
+
+      return;
+    }
+    
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -264,7 +278,8 @@ class MyHomePage extends StatelessWidget {
               'Sound file: ',
               style: TextStyle(fontSize: 15),
             ),
-            Flexible( // Wrap long text on multiple lines
+            Flexible(
+              // Wrap long text on multiple lines
               child: Text(
                 selectedAlarm.soundAssetPath,
                 style: const TextStyle(fontSize: 15),
@@ -353,13 +368,28 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
+  void _handleNullSelectedsAlarm(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please select an alarm first'),
+      ),
+    );
+  }
+
   void _showEditAlarmDialog(BuildContext context) {
     TextEditingController titleController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
     TextEditingController periodicityController = TextEditingController();
     TextEditingController startTimeController = TextEditingController();
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
-    Alarm selectedAlarm = alarmVM.getSelectedAlarm();
+    Alarm? selectedAlarm = alarmVM.getSelectedAlarm();
+
+    if (selectedAlarm == null) {
+      _handleNullSelectedsAlarm(context);
+
+      return;
+    }
+
     titleController.text = selectedAlarm.title;
     descriptionController.text = selectedAlarm.description;
     periodicityController.text = selectedAlarm.alarmHHmmPeriodicity;
