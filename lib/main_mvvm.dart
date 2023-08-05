@@ -1,6 +1,5 @@
 // https://github.com/bluefireteam/audioplayers/blob/main/getting_started.md
 
-import 'package:alarm_cycle/util/date_time_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
@@ -9,12 +8,21 @@ import 'package:audioplayers/audioplayers.dart';
 
 const String appName = "Alarm Manager Example";
 
+class AlarmSettings {
+  final Duration periodicity;
+  final String soundAssetPath;
+
+  AlarmSettings(
+    this.periodicity,
+    this.soundAssetPath,
+  );
+}
+
 class SoundService {
   late AudioPlayer _audioPlayer;
 
   SoundService() {
     _audioPlayer = AudioPlayer();
-    _initializePlayer();
   }
 
   /// Asset definition in pubspec.yaml
@@ -22,72 +30,78 @@ class SoundService {
   ///   assets:
   ///     - assets/audio/
   ///
-  void _initializePlayer() async {
-    await _audioPlayer
-        .setSourceAsset('audio/mixkit-facility-alarm-sound-999.mp3');
-  }
-
-  Future<void> playAlarmSound() async {
-    await _audioPlayer
-        .play(AssetSource('audio/mixkit-facility-alarm-sound-999.mp3'));
+  /// {soundAssetPath} example: 'audio/mixkit-facility-alarm-sound-999.mp3'
+  Future<void> playAlarmSound({
+    required String soundAssetPath,
+  }) async {
+    await _audioPlayer.play(AssetSource(soundAssetPath));
   }
 }
 
 class AlarmService {
-  // The AndroidAlarmManager.periodic method requires a callback
-  // function that has no parameters. This is due to the way Dart's
-  // Isolate communicates with the main application. When the callback
-  // function is executed, it does not have access to the state of the
-  // app when the function was scheduled. Therefore, the function and
-  // its parameters should not depend on the instance state of your
-  // application, which is why static functions are usually used.
-  static const int periodicTaskId = 3;
-  static final SoundService staticSoundService = SoundService();
+  final Map<int, AlarmSettings> alarms = {};
+  final SoundService soundService;
 
-  static void periodicTaskCallbackFunction() {
-    print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundService.playAlarmSound();
-  }
+  AlarmService(this.soundService);
 
   Future<void> schedulePeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
+    required alarmId,
+    required settings,
   }) async {
-    Duration? parseHHMMDuration =
-        DateTimeParser.parseHHMMDuration(alarmHHmmPeriodicity);
+    alarms[alarmId] = settings;
 
-    if (parseHHMMDuration != null) {
-      await AndroidAlarmManager.periodic(
-        parseHHMMDuration,
-        periodicTaskId,
-        periodicTaskCallbackFunction,
+    await AndroidAlarmManager.periodic(
+      settings.periodicity,
+      alarmId,
+      () => periodicTaskCallbackFunction(alarmId),
+    );
+  }
+
+  void periodicTaskCallbackFunction(int alarmId) {
+    print("Periodic Task Running for Alarm ID: $alarmId");
+    AlarmSettings? settings = alarms[alarmId];
+    if (settings != null) {
+      soundService.playAlarmSound(
+        soundAssetPath: settings.soundAssetPath,
       );
     }
   }
 
   Future<void> cancelPeriodicAlarm({
-    required String alarmHHmmPeriodicity,
-    required String startAlarmHHmm,
+    required int alarmId,
   }) async {
-    await AndroidAlarmManager.cancel(periodicTaskId);
+    await AndroidAlarmManager.cancel(alarmId);
   }
 }
 
 class AlarmViewModel extends ChangeNotifier {
+  static const List<String> availableSoundAssetPaths = [
+    "audio/mixkit-facility-alarm-sound-999.mp3",
+    "audio/mixkit-city-alert-siren-loop-1008.mp3",
+    "audio/mixkit-interface-hint-notification-911.mp3",
+    "audio/mixkit-scanning-sci-fi-alarm-905.mp3",
+  ];
+
+  int lastAlarmId = 1;
   final AlarmService _alarmService;
 
   AlarmViewModel(this._alarmService);
 
   Future<void> schedulePeriodicAlarm({
-    required String alarmHHmmPeriodicity,
+    required String minuteNumber,
     required String startAlarmHHmm,
   }) async {
+    AlarmSettings settings = AlarmSettings(
+      Duration(minutes: int.parse(minuteNumber)),
+      availableSoundAssetPaths[lastAlarmId % availableSoundAssetPaths.length],
+    );
+
     print(
-        "********** SET startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
+        "********** SET alarm id: $lastAlarmId \n********** startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $minuteNumber\n********** sound: ${settings.soundAssetPath}}");
 
     await _alarmService.schedulePeriodicAlarm(
-      alarmHHmmPeriodicity: alarmHHmmPeriodicity,
-      startAlarmHHmm: startAlarmHHmm,
+      alarmId: lastAlarmId++,
+      settings: settings,
     );
   }
 
@@ -99,8 +113,7 @@ class AlarmViewModel extends ChangeNotifier {
         "********** DELETE startAlarmHHmm: $startAlarmHHmm\n********** alarmHHmmPeriodicity: $alarmHHmmPeriodicity");
 
     await _alarmService.cancelPeriodicAlarm(
-      alarmHHmmPeriodicity: alarmHHmmPeriodicity,
-      startAlarmHHmm: startAlarmHHmm,
+      alarmId: lastAlarmId--,
     );
   }
 }
@@ -136,11 +149,11 @@ class MyHomePage extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton.icon(
                       onPressed: () async {
-                        String alarmHHmmPeriodicity =
-                            await _chooseDuration(context);
-                        Provider.of<AlarmViewModel>(context, listen: false)
+                        String minuteNumber = await _chooseDuration(context);
+                        await Provider.of<AlarmViewModel>(context,
+                                listen: false)
                             .schedulePeriodicAlarm(
-                          alarmHHmmPeriodicity: alarmHHmmPeriodicity,
+                          minuteNumber: minuteNumber,
                           startAlarmHHmm: DateTime.now().toString(),
                         );
                       },
@@ -173,39 +186,19 @@ class MyHomePage extends StatelessWidget {
   }
 
   Future<String> _chooseDuration(BuildContext context) async {
-    String alarmPeriodicityHHmmStr = '';
-    String? alarmPeriodicityValueTypeStr;
+    String alarmPeriodicityMinuteStr = '';
 
-    String? enteredText = await showDialog(
+    await showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text("Enter a number for the duration"),
+            title: const Text("Enter a minute number for the duration"),
             content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
                 return Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: RadioListTile(
-                          title: Text(minutesLabel),
-                          value: minutesLabel,
-                          groupValue: alarmPeriodicityValueTypeStr,
-                          onChanged: (String? value) {
-                            setState(
-                                () => alarmPeriodicityValueTypeStr = value);
-                          }),
-                    ),
-                    Expanded(
-                      child: RadioListTile(
-                          title: Text(hoursLabel),
-                          value: hoursLabel,
-                          groupValue: alarmPeriodicityValueTypeStr,
-                          onChanged: (String? value) {
-                            setState(
-                                () => alarmPeriodicityValueTypeStr = value);
-                          }),
-                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -217,7 +210,7 @@ class MyHomePage extends StatelessWidget {
                               FilteringTextInputFormatter.digitsOnly
                             ],
                             onChanged: (String text) {
-                              alarmPeriodicityHHmmStr = text;
+                              alarmPeriodicityMinuteStr = text;
                             },
                           ),
                         ),
@@ -230,7 +223,7 @@ class MyHomePage extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(alarmPeriodicityHHmmStr);
+                  Navigator.of(context).pop(alarmPeriodicityMinuteStr);
                 },
                 child: const Text("Ok"),
               ),
@@ -244,21 +237,7 @@ class MyHomePage extends StatelessWidget {
           );
         });
 
-    if (enteredText != null) {
-      int enteredTextInt = int.parse(enteredText);
-
-      if (alarmPeriodicityValueTypeStr == minutesLabel) {
-        if (enteredTextInt > 9) {
-          return '00:$enteredText';
-        } else {
-          return '00:0$enteredText';
-        }
-      } else {
-        return '$enteredText:00';
-      }
-    }
-
-    return alarmPeriodicityHHmmStr;
+    return alarmPeriodicityMinuteStr;
   }
 }
 
@@ -283,7 +262,11 @@ void main() async {
   await AndroidAlarmManager.initialize();
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AlarmViewModel(AlarmService()),
+      create: (context) => AlarmViewModel(
+        AlarmService(
+          SoundService(),
+        ),
+      ),
       child: const MyApp(),
     ),
   );
