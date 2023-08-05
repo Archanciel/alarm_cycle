@@ -12,17 +12,49 @@ class AlarmService {
   // app when the function was scheduled. Therefore, the function and
   // its parameters should not depend on the instance state of your
   // application, which is why static functions are usually used.
-  static final SoundService staticSoundService = SoundService();
+  static final SoundService staticSoundServiceOne = SoundService();
+  static final SoundService staticSoundServiceTwo = SoundService();
+  static final SoundService staticSoundServiceThree = SoundService();
+  static final SoundService staticSoundServiceFour = SoundService();
 
-  static void periodicTaskCallbackFunction() {
+  static final List<SoundService> staticSoundServiceList = [
+    staticSoundServiceOne,
+    staticSoundServiceTwo,
+    staticSoundServiceThree,
+    staticSoundServiceFour,
+  ];
+
+  static void periodicTaskCallbackFunctionOne() {
     print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundService.playAlarmSound();
+    staticSoundServiceOne.playAlarmSound();
   }
+
+  static void periodicTaskCallbackFunctionTwo() {
+    print("Periodic Task Running. Time is ${DateTime.now()}");
+    staticSoundServiceTwo.playAlarmSound();
+  }
+
+  static void periodicTaskCallbackFunctionThree() {
+    print("Periodic Task Running. Time is ${DateTime.now()}");
+    staticSoundServiceThree.playAlarmSound();
+  }
+
+  static void periodicTaskCallbackFunctionFour() {
+    print("Periodic Task Running. Time is ${DateTime.now()}");
+    staticSoundServiceFour.playAlarmSound();
+  }
+
+  static final List<Function> periodicTaskCallbackFunctionList = [
+    periodicTaskCallbackFunctionOne,
+    periodicTaskCallbackFunctionTwo,
+    periodicTaskCallbackFunctionThree,
+    periodicTaskCallbackFunctionFour,
+  ];
 
   Future<void> schedulePeriodicAlarm({
     required Alarm alarm,
   }) async {
-    staticSoundService.setSoundAssetPath(
+    staticSoundServiceList[alarm.alarmId % 4].setSoundAssetPath(
       soundAssetPath: alarm.soundAssetPath,
     );
 
@@ -33,7 +65,7 @@ class AlarmService {
       await AndroidAlarmManager.periodic(
         parseHHMMDuration,
         alarm.alarmId,
-        periodicTaskCallbackFunction,
+        periodicTaskCallbackFunctionList[alarm.alarmId % 4],
         startAt: alarm.startAlarmDateTime,
       );
     }
