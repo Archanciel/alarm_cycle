@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class SoundService {
   static final AudioPlayer _audioPlayer = AudioPlayer();
+  static String _soundAssetPath = '';
 
   /// Asset definition in pubspec.yaml
   ///
@@ -13,12 +14,13 @@ class SoundService {
   void setSoundAssetPath({
     required String soundAssetPath,
   }) async {
+    _soundAssetPath = soundAssetPath;
     await _audioPlayer.setSourceAsset(soundAssetPath);
   }
 
   Future<void> playAlarmSound() async {
     await _audioPlayer
-        .play(AssetSource('audio/mixkit-facility-alarm-sound-999.mp3'));
+        .play(AssetSource(_soundAssetPath));
   }
 }
 
