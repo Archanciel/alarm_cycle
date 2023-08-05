@@ -255,6 +255,18 @@ class MyHomePage extends StatelessWidget {
             ),
           ],
         ),
+        Row(
+          children: [
+            const Text(
+              'Sound file: ',
+              style: TextStyle(fontSize: 15),
+            ),
+            Text(
+              selectedAlarm.soundAssetPath,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
       ],
     );
   }

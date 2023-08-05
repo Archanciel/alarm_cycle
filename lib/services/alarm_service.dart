@@ -12,9 +12,7 @@ class AlarmService {
   // app when the function was scheduled. Therefore, the function and
   // its parameters should not depend on the instance state of your
   // application, which is why static functions are usually used.
-  static final SoundService staticSoundService = SoundService(
-    soundAssetPath: 'audio/mixkit-facility-alarm-sound-999.mp3',
-  );
+  static final SoundService staticSoundService = SoundService();
 
   static void periodicTaskCallbackFunction() {
     print("Periodic Task Running. Time is ${DateTime.now()}");
@@ -24,6 +22,10 @@ class AlarmService {
   Future<void> schedulePeriodicAlarm({
     required Alarm alarm,
   }) async {
+    staticSoundService.setSoundAssetPath(
+      soundAssetPath: alarm.soundAssetPath,
+    );
+
     Duration? parseHHMMDuration =
         DateTimeParser.parseHHMMDuration(alarm.alarmHHmmPeriodicity);
 

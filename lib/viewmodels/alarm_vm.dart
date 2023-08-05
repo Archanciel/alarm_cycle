@@ -40,6 +40,7 @@ class AlarmVM extends ChangeNotifier {
       alarmId: alarmId,
       alarmHHmmPeriodicity: alarmHHmmPeriodicity,
       startAlarmDateTime: startAlarmDateTime,
+      soundAssetPath: "audio/mixkit-facility-alarm-sound-999.mp3",
       title: title,
       description: description,
     );
