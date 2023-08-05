@@ -5,6 +5,12 @@ import '../models/alarm.dart';
 import '../util/date_time_parser.dart';
 
 class AlarmService {
+  static final List<String> availableSoundAssetPaths = [
+    "audio/mixkit-city-alert-siren-loop-1008.mp3",
+    "audio/mixkit-facility-alarm-sound-999.mp3",
+    "audio/mixkit-scanning-sci-fi-alarm-905.mp3",
+  ];
+
   // The AndroidAlarmManager.periodic method requires a callback
   // function that has no parameters. This is due to the way Dart's
   // Isolate communicates with the main application. When the callback
@@ -15,40 +21,38 @@ class AlarmService {
   static final SoundService staticSoundServiceOne = SoundService();
   static final SoundService staticSoundServiceTwo = SoundService();
   static final SoundService staticSoundServiceThree = SoundService();
-  static final SoundService staticSoundServiceFour = SoundService();
 
   static final List<SoundService> staticSoundServiceList = [
     staticSoundServiceOne,
     staticSoundServiceTwo,
     staticSoundServiceThree,
-    staticSoundServiceFour,
   ];
 
   static void periodicTaskCallbackFunctionOne() {
-    print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundServiceOne.playAlarmSound();
+    print("*********** Periodic Task Running. Time is ${DateTime.now()}\n*********** sound: ${availableSoundAssetPaths[0]}");
+    staticSoundServiceOne.playAlarmSound(
+      soundAssetPath: availableSoundAssetPaths[0],
+    );
   }
 
   static void periodicTaskCallbackFunctionTwo() {
-    print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundServiceTwo.playAlarmSound();
+    print("*********** Periodic Task Running. Time is ${DateTime.now()}\n*********** sound: ${availableSoundAssetPaths[1]}");
+    staticSoundServiceTwo.playAlarmSound(
+      soundAssetPath: availableSoundAssetPaths[1],
+    );
   }
 
   static void periodicTaskCallbackFunctionThree() {
-    print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundServiceThree.playAlarmSound();
-  }
-
-  static void periodicTaskCallbackFunctionFour() {
-    print("Periodic Task Running. Time is ${DateTime.now()}");
-    staticSoundServiceFour.playAlarmSound();
+    print("*********** Periodic Task Running. Time is ${DateTime.now()}\n*********** sound: ${availableSoundAssetPaths[2]}");
+    staticSoundServiceThree.playAlarmSound(
+      soundAssetPath: availableSoundAssetPaths[2],
+    );
   }
 
   static final List<Function> periodicTaskCallbackFunctionList = [
     periodicTaskCallbackFunctionOne,
     periodicTaskCallbackFunctionTwo,
     periodicTaskCallbackFunctionThree,
-    periodicTaskCallbackFunctionFour,
   ];
 
   Future<void> schedulePeriodicAlarm({

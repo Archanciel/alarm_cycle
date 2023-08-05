@@ -19,8 +19,10 @@ class SoundService {
     // await _audioPlayer.setSourceAsset(soundAssetPath);
   }
 
-  Future<void> playAlarmSound() async {
+  Future<void> playAlarmSound({
+    required String soundAssetPath,
+  } ) async {
     await _audioPlayer
-        .play(AssetSource('audio/mixkit-facility-alarm-sound-999.mp3'));
+        .play(AssetSource(soundAssetPath));
   }
 }

@@ -8,7 +8,6 @@ class AlarmVM extends ChangeNotifier {
   static final List<String> availableSoundAssetPaths = [
     "audio/mixkit-facility-alarm-sound-999.mp3",
     "audio/mixkit-city-alert-siren-loop-1008.mp3",
-    "audio/mixkit-interface-hint-notification-911.mp3",
     "audio/mixkit-scanning-sci-fi-alarm-905.mp3",
   ];
 
@@ -54,7 +53,7 @@ class AlarmVM extends ChangeNotifier {
       alarmId: alarmId,
       alarmHHmmPeriodicity: alarmHHmmPeriodicity,
       startAlarmDateTime: startAlarmDateTime,
-      soundAssetPath: availableSoundAssetPaths[alarmId % 4],
+      soundAssetPath: availableSoundAssetPaths[alarmId % 3],
       title: title,
       description: description,
     );
