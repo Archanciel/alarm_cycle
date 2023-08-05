@@ -98,8 +98,8 @@ class AlarmVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  Alarm getSelectedAlarm() {
-    return _alarmsMap[_selectedAlarmId]!;
+  Alarm? getSelectedAlarm() {
+    return _alarmsMap[_selectedAlarmId];
   }
 
   void selectAlarm({
