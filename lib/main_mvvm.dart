@@ -30,7 +30,7 @@ class SoundService {
   ///   assets:
   ///     - assets/audio/
   ///
-  /// {soundAssetPath} example: 'audio/mixkit-facility-alarm-sound-999.mp3'
+  /// {soundAssetPath} example: 'audio/Lioresal.mp3'
   Future<void> playAlarmSound({
     required String soundAssetPath,
   }) async {
@@ -76,10 +76,8 @@ class AlarmService {
 
 class AlarmViewModel extends ChangeNotifier {
   static const List<String> availableSoundAssetPaths = [
-    "audio/mixkit-facility-alarm-sound-999.mp3",
-    "audio/mixkit-city-alert-siren-loop-1008.mp3",
-    "audio/mixkit-interface-hint-notification-911.mp3",
-    "audio/mixkit-scanning-sci-fi-alarm-905.mp3",
+    "audio/Lioresal.mp3",
+    "audio/Sirdalud.mp3",
   ];
 
   int lastAlarmId = 1;

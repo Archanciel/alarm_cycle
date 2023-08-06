@@ -23,7 +23,7 @@ class SoundService {
 }
 
 class AlarmService {
-  static Map<int, SoundService> _soundServices = {};
+  static final Map<int, SoundService> _soundServices = {};
 
   static void registerSoundService(int id, SoundService soundService) {
     _soundServices[id] = soundService;
@@ -73,6 +73,8 @@ class MyApp extends StatelessWidget {
 class AlarmScreen extends StatelessWidget {
   final AlarmService _alarmService = AlarmService();
 
+  AlarmScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +88,7 @@ class AlarmScreen extends StatelessWidget {
               await _alarmService.schedulePeriodicAlarm(
                 duration: const Duration(minutes: 2),
                 id: 1,
-                soundPath: 'audio/mixkit-facility-alarm-sound-999.mp3',
+                soundPath: 'audio/Lioresal.mp3',
               );
             },
             child: const Text('Set Alarm 1 (3 minutes, sound 1)'),
@@ -96,7 +98,7 @@ class AlarmScreen extends StatelessWidget {
               await _alarmService.schedulePeriodicAlarm(
                 duration: const Duration(minutes: 3),
                 id: 2,
-                soundPath: 'audio/mixkit-city-alert-siren-loop-1008.mp3',
+                soundPath: 'audio/Sirdalud.mp3',
               );
             },
             child: const Text('Set Alarm 2 (2 minutes, sound 2)'),

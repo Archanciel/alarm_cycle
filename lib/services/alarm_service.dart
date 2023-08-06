@@ -5,11 +5,12 @@ import '../models/alarm.dart';
 import '../util/date_time_parser.dart';
 
 class AlarmService {
-  static final List<String> availableSoundAssetPaths = [
-    "audio/mixkit-city-alert-siren-loop-1008.mp3",
-    "audio/mixkit-facility-alarm-sound-999.mp3",
-    "audio/mixkit-scanning-sci-fi-alarm-905.mp3",
+  static const List<String> availableSoundAssetPaths = [
+    "audio/Lioresal.mp3",
+    "audio/Sirdalud.mp3",
   ];
+
+  static const int soundsNumber = 2;
 
   // The AndroidAlarmManager.periodic method requires a callback
   // function that has no parameters. This is due to the way Dart's
@@ -42,23 +43,15 @@ class AlarmService {
     );
   }
 
-  static void periodicTaskCallbackFunctionThree() {
-    print("*** Periodic task running at ${DateTime.now()}\n*** Sound: ${availableSoundAssetPaths[2]}");
-    staticSoundServiceThree.playAlarmSound(
-      soundAssetPath: availableSoundAssetPaths[2],
-    );
-  }
-
   static final List<Function> periodicTaskCallbackFunctionList = [
     periodicTaskCallbackFunctionOne,
     periodicTaskCallbackFunctionTwo,
-    periodicTaskCallbackFunctionThree,
   ];
 
   Future<void> schedulePeriodicAlarm({
     required Alarm alarm,
   }) async {
-    staticSoundServiceList[alarm.alarmId % 3].setSoundAssetPath(
+    await staticSoundServiceList[alarm.alarmId % soundsNumber].setSoundAssetPath(
       soundAssetPath: alarm.soundAssetPath,
     );
 
@@ -69,7 +62,7 @@ class AlarmService {
       await AndroidAlarmManager.periodic(
         parseHHMMDuration,
         alarm.alarmId,
-        periodicTaskCallbackFunctionList[alarm.alarmId % 3],
+        periodicTaskCallbackFunctionList[alarm.alarmId % soundsNumber],
         exact: true,
         startAt: alarm.startAlarmDateTime,
       );

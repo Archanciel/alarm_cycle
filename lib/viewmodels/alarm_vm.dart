@@ -5,12 +5,6 @@ import '../services/alarm_service.dart';
 import '../util/date_time_parser.dart';
 
 class AlarmVM extends ChangeNotifier {
-  static final List<String> availableSoundAssetPaths = [
-    "audio/mixkit-facility-alarm-sound-999.mp3",
-    "audio/mixkit-city-alert-siren-loop-1008.mp3",
-    "audio/mixkit-scanning-sci-fi-alarm-905.mp3",
-  ];
-
   // uses a static instance of SoundService
   final AlarmService _alarmService;
 
@@ -53,7 +47,7 @@ class AlarmVM extends ChangeNotifier {
       alarmId: alarmId,
       alarmHHmmPeriodicity: alarmHHmmPeriodicity,
       startAlarmDateTime: startAlarmDateTime,
-      soundAssetPath: availableSoundAssetPaths[alarmId % 3],
+      soundAssetPath: AlarmService.availableSoundAssetPaths[alarmId % AlarmService.soundsNumber],
       title: title,
       description: description,
     );

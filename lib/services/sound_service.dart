@@ -2,18 +2,20 @@ import 'package:audioplayers/audioplayers.dart';
 
 class SoundService {
   static final AudioPlayer _audioPlayer = AudioPlayer();
-  static String _soundAssetPath = '';
+  static const String _soundAssetPath = '';
 
   /// Asset definition in pubspec.yaml
   ///
   ///   assets:
   ///     - assets/audio/
   ///
-  /// {soundAssetPath} example: 'audio/mixkit-facility-alarm-sound-999.mp3'
-  void setSoundAssetPath({
+  /// {soundAssetPath} example: 'audio/Lioresal.mp3'
+  Future<void> setSoundAssetPath({
     required String soundAssetPath,
-  }) async {
-    // await _audioPlayer.setSourceAsset(soundAssetPath);
+  })  async {
+    await _audioPlayer.setSourceAsset(soundAssetPath);
+    // does not avoid errors [ERROR:flutter/runtime/dart_vm_initializer.cc(41)]
+    // Unhandled Exception: Bad state: Future already completed
   }
 
   Future<void> playAlarmSound({
