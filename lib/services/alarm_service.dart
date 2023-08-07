@@ -51,14 +51,43 @@ class AlarmService {
   Future<void> schedulePeriodicAlarm({
     required Alarm alarm,
   }) async {
-    await staticSoundServiceList[alarm.alarmId % soundsNumber].setSoundAssetPath(
-      soundAssetPath: alarm.soundAssetPath,
-    );
-
     Duration? parseHHMMDuration =
         DateTimeParser.parseHHMMDuration(alarm.alarmHHmmPeriodicity);
 
     if (parseHHMMDuration != null) {
+      // Here's what each of these named parameters signifies in the
+      // `AndroidAlarmManager.periodic()` function:
+      //
+      // 1. `exact`: A boolean parameter. When set to true, the alarm will
+      // go off at the exact time of the alarm. When set to false (default),
+      // the alarm may go off a little before its set time. This is because
+      // Android can shift alarms in batches to conserve power.
+      //
+      // 2. `wakeup`: A boolean parameter. If this is set to true, the alarm
+      // will wake up the device when it goes off. If false, the alarm will
+      // not wake up the device, meaning if the device is in sleep mode when
+      // the alarm goes off, it won't be woken up and the alarm might not go
+      // off until the device is next awakened.
+      //
+      // 3. `startAt`: A `DateTime` parameter. It defines when the first
+      // alarm should go off. For example, if you want the first alarm to
+      // go off 5 seconds from now, you can set it as
+      // `startAt: DateTime.now().add(Duration(seconds: 5))`.
+      //
+      // 4. `alarmClock`: A boolean parameter. When this is set to true,
+      // the alarm will be set as an alarm clock, meaning it will be shown
+      // to the user in the status bar and the alarm clock UI.
+      //
+      // 5. `allowWhileIdle`: A boolean parameter. When set to true, the
+      // alarm can also go off while the device is in idle mode. This is
+      // useful for critical alarms that need to go off even if the device
+      // is in battery-saving modes.
+      //
+      // 6. `rescheduleOnReboot`: A boolean parameter. When set to true,
+      // the alarm will be rescheduled after the device reboots. Note that
+      // you'll need to declare the
+      // `<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>`
+      // permission in your manifest file to use this.
       await AndroidAlarmManager.periodic(
         parseHHMMDuration,
         alarm.alarmId,
