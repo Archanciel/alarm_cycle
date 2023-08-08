@@ -1,3 +1,4 @@
+import 'package:alarm_cycle/util/date_time_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -23,15 +24,18 @@ class SoundService {
 }
 
 class AlarmService {
-  static final Map<int, SoundService> _soundServices = {};
-
-  static void registerSoundService(int id, SoundService soundService) {
-    _soundServices[id] = soundService;
-  }
+  static final SoundService soundServiceSirdalud =
+      SoundService('audio/Sirdalud.mp3');
+  static final SoundService soundServiceLioresal =
+      SoundService('audio/Lioresal.mp3');
+  static final Map<int, SoundService> soundServices = {
+    1: soundServiceSirdalud,
+    2: soundServiceLioresal,
+  };
 
   static void periodicTaskCallbackFunction(int id) {
     print("Periodic Task Running for alarm ID $id. Time is ${DateTime.now()}");
-    _soundServices[id]?.playAlarmSound();
+    soundServices[id]?.playAlarmSound();
   }
 
   Future<void> schedulePeriodicAlarm({
@@ -39,7 +43,8 @@ class AlarmService {
     required int id,
     required String soundPath,
   }) async {
-    registerSoundService(id, SoundService(soundPath));
+    print(
+        "********** SET alarmId: $id\n********** startAlarmHHmm: ${DateTimeParser.englishDateTimeFormat.format(DateTime.now())}\n********** alarmHHmmPeriodicity: ${duration.HHmm()}\n********** soundPath: $soundPath");
     await AndroidAlarmManager.periodic(
       duration,
       id,
@@ -51,7 +56,7 @@ class AlarmService {
 
   Future<void> cancelPeriodicAlarm(int id) async {
     await AndroidAlarmManager.cancel(id);
-    _soundServices.remove(id);
+    soundServices.remove(id);
   }
 }
 
@@ -86,9 +91,9 @@ class AlarmScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               await _alarmService.schedulePeriodicAlarm(
-                duration: const Duration(minutes: 2),
+                duration: const Duration(minutes: 3),
                 id: 1,
-                soundPath: 'audio/Lioresal.mp3',
+                soundPath: 'audio/Sirdalud.mp3',
               );
             },
             child: const Text('Set Alarm 1 (3 minutes, sound 1)'),
@@ -96,12 +101,12 @@ class AlarmScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               await _alarmService.schedulePeriodicAlarm(
-                duration: const Duration(minutes: 3),
+                duration: const Duration(minutes: 5),
                 id: 2,
-                soundPath: 'audio/Sirdalud.mp3',
+                soundPath: 'audio/Lioresal.mp3',
               );
             },
-            child: const Text('Set Alarm 2 (2 minutes, sound 2)'),
+            child: const Text('Set Alarm 2 (5 minutes, sound 2)'),
           ),
           ElevatedButton(
             onPressed: () async {
