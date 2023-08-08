@@ -33,22 +33,31 @@ class AlarmService {
     2: soundServiceLioresal,
   };
 
-  static void periodicTaskCallbackFunction(int id) {
-    print("Periodic Task Running for alarm ID $id. Time is ${DateTime.now()}");
-    soundServices[id]?.playAlarmSound();
+  static void periodicTaskCallbackFunctionSirdalud() {
+    print("*** Periodic Task Running for alarm ID 1. Time is ${DateTime.now()}");
+    soundServices[1]!.playAlarmSound();
   }
+
+  static void periodicTaskCallbackFunctionLioresal() {
+    print("*** Periodic Task Running for alarm ID 2. Time is ${DateTime.now()}");
+    soundServices[2]!.playAlarmSound();
+  }
+
+  static final Map<int, Function> periodicTaskCallbackFunctions = {
+    1: periodicTaskCallbackFunctionSirdalud,
+    2: periodicTaskCallbackFunctionLioresal,
+  };
 
   Future<void> schedulePeriodicAlarm({
     required Duration duration,
     required int id,
-    required String soundPath,
   }) async {
     print(
-        "********** SET alarmId: $id\n********** startAlarmHHmm: ${DateTimeParser.englishDateTimeFormat.format(DateTime.now())}\n********** alarmHHmmPeriodicity: ${duration.HHmm()}\n********** soundPath: $soundPath");
+        "********** SET alarmId: $id\n********** startAlarmHHmm: ${DateTimeParser.englishDateTimeFormat.format(DateTime.now())}\n********** alarmHHmmPeriodicity: ${duration.HHmm()}\n********** soundPath: ${soundServices[id]!.soundPath}");
     await AndroidAlarmManager.periodic(
       duration,
       id,
-      (id) => periodicTaskCallbackFunction(id),
+      periodicTaskCallbackFunctions[id]!,
       exact: true,
       wakeup: true,
     );
@@ -93,7 +102,6 @@ class AlarmScreen extends StatelessWidget {
               await _alarmService.schedulePeriodicAlarm(
                 duration: const Duration(minutes: 3),
                 id: 1,
-                soundPath: 'audio/Sirdalud.mp3',
               );
             },
             child: const Text('Set Alarm 1 (3 minutes, sound 1)'),
@@ -103,7 +111,6 @@ class AlarmScreen extends StatelessWidget {
               await _alarmService.schedulePeriodicAlarm(
                 duration: const Duration(minutes: 5),
                 id: 2,
-                soundPath: 'audio/Lioresal.mp3',
               );
             },
             child: const Text('Set Alarm 2 (5 minutes, sound 2)'),
