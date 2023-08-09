@@ -531,4 +531,13 @@ class DateTimeParser {
           dateTime.hour, 0, 0, 0, 0);
     }
   }
+
+  /// This method takes a DateTime object as input and returns a new DateTime
+  /// object with the same year, month, day, hour, and minute as the input,
+  /// but with seconds and milliseconds set to zero. Essentially, it rounds
+  /// the input DateTime object down to the nearest minute.
+  static DateTime truncateDateTimeToMinute(DateTime dateTime) {
+    return DateTimeParser.englishDateTimeFormat
+        .parse(DateTimeParser.englishDateTimeFormat.format(dateTime));
+  }
 }

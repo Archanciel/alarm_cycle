@@ -93,7 +93,7 @@ class AlarmService {
         alarm.alarmId,
         periodicTaskCallbackFunctionList[alarm.alarmId % soundsNumber],
         exact: true,
-        startAt: alarm.startAlarmDateTime,
+        startAt: alarm.startAlarmDateTime.add(parseHHMMDuration),
       );
     }
   }
