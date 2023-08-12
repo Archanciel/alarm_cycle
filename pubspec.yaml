@@ -7,8 +7,8 @@ environment:
   sdk: '>=3.0.6 <4.0.0'
 
 dependencies:
-  android_alarm_manager_plus: ^3.0.1
-  audioplayers: ^5.0.0
+  android_alarm_manager_plus: ^3.0.2
+  audioplayers: ^5.1.0
   flutter:
     sdk: flutter
   intl: ^0.18.1
