@@ -70,7 +70,11 @@ class Alarm {
 }
 
 class AudioPlayerVM extends ChangeNotifier {
-  Future<void> play(Alarm alarm) async {
+  /// Play an audio file located in the assets folder.
+  /// 
+  /// Example: audioFilePath = 'audio/Sirdalud.mp3' if
+  /// the audio file is located in the assets/audio folder.
+  Future<void> playFromAssets(Alarm alarm) async {
     final file = File(alarm.audioFilePath);
     
     if (!await file.exists()) {
@@ -81,7 +85,6 @@ class AudioPlayerVM extends ChangeNotifier {
 
     if (audioPlayer == null) {
       audioPlayer = AudioPlayer();
-      await audioPlayer.setSourceAsset(alarm.audioFilePath);
       alarm.audioPlayer = audioPlayer;
     }
 
@@ -171,7 +174,7 @@ class AlarmViewModel with ChangeNotifier {
     for (Alarm alarm in alarms) {
       if (alarm.nextAlarmTime.isBefore(now)) {
         // _triggerNotification(alarm);
-        await audioPlayerVM.play(alarm);
+        await audioPlayerVM.playFromAssets(alarm);
 
         // Update the nextAlarmTime
         alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.resilientDuration);
