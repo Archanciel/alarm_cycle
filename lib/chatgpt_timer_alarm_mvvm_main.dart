@@ -5,8 +5,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -15,7 +15,7 @@ import 'package:path/path.dart' as path;
 void main() => runApp(
       ChangeNotifierProvider(
         create: (context) => AlarmViewModel(),
-        child: MyApp(),
+        child: const MyApp(),
       ),
     );
 
@@ -24,6 +24,23 @@ class Alarm {
   DateTime nextAlarmTime;
   Duration resilientDuration;
   String audioFilePath;
+
+  // State of the alarm audio
+
+  bool _isPlaying = false;
+  bool get isPlaying => _isPlaying;
+  set isPlaying(bool isPlaying) {
+    _isPlaying = isPlaying;
+    _isPaused = false;
+  }
+
+  bool _isPaused = false;
+  bool get isPaused => _isPaused;
+
+  // AudioPlayer of the current alarm. Enables to play, pause, stop
+  // the alarm audio. It is initialized when the alarm audio is
+  // played for the first time.
+  AudioPlayer? audioPlayer;
 
   Alarm({
     required this.name,
@@ -46,6 +63,53 @@ class Alarm {
         resilientDuration: Duration(seconds: json['resilientDuration']),
         audioFilePath: json['audioFilePath'],
       );
+
+  void invertPaused() {
+    _isPaused = !_isPaused;
+  }
+}
+
+class AudioPlayerVM extends ChangeNotifier {
+  Future<void> play(Alarm alarm) async {
+    final file = File(alarm.audioFilePath);
+    
+    if (!await file.exists()) {
+      print('File not found: ${alarm.audioFilePath}');
+    }
+
+    AudioPlayer? audioPlayer = alarm.audioPlayer;
+
+    if (audioPlayer == null) {
+      audioPlayer = AudioPlayer();
+      await audioPlayer.setSourceAsset(alarm.audioFilePath);
+      alarm.audioPlayer = audioPlayer;
+    }
+
+    await audioPlayer.play(AssetSource(alarm.audioFilePath));
+    alarm.isPlaying = true;
+
+    notifyListeners();
+  }
+
+  Future<void> pause(Alarm alarm) async {
+    // Stop the audio
+    if (alarm.isPaused) {
+      await alarm.audioPlayer!.resume();
+    } else {
+      await alarm.audioPlayer!.pause();
+    }
+
+    alarm.invertPaused();
+
+    notifyListeners();
+  }
+
+  Future<void> stop(Alarm alarm) async {
+    // Stop the audio
+    await alarm.audioPlayer!.stop();
+    alarm.isPlaying = false;
+    notifyListeners();
+  }
 }
 
 class AlarmViewModel with ChangeNotifier {
@@ -54,7 +118,8 @@ class AlarmViewModel with ChangeNotifier {
 
   FlutterLocalNotificationsPlugin localNotifications =
       FlutterLocalNotificationsPlugin();
-  FlutterSoundPlayer audioPlayer = FlutterSoundPlayer();
+
+  AudioPlayerVM audioPlayerVM = AudioPlayerVM();
 
   AlarmViewModel() {
     _loadAlarms();
@@ -105,8 +170,8 @@ class AlarmViewModel with ChangeNotifier {
 
     for (Alarm alarm in alarms) {
       if (alarm.nextAlarmTime.isBefore(now)) {
-        _triggerNotification(alarm);
-        await _playAlarmSound(alarm.audioFilePath);
+        // _triggerNotification(alarm);
+        await audioPlayerVM.play(alarm);
 
         // Update the nextAlarmTime
         alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.resilientDuration);
@@ -119,10 +184,6 @@ class AlarmViewModel with ChangeNotifier {
 
       notifyListeners();
     }
-  }
-
-  Future<void> _playAlarmSound(String audioFilePath) async {
-    await audioPlayer.startPlayer(fromURI: audioFilePath);
   }
 
   addAlarm(Alarm alarm) {
@@ -177,9 +238,11 @@ class AlarmViewModel with ChangeNotifier {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Alarm App',
       home: AlarmPage(),
     );
@@ -187,6 +250,8 @@ class MyApp extends StatelessWidget {
 }
 
 class AlarmPage extends StatefulWidget {
+  const AlarmPage({super.key});
+
   @override
   _AlarmPageState createState() => _AlarmPageState();
 }
