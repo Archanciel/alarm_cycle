@@ -35,4 +35,7 @@
 
     <!-- For apps with targetSDK=31 (Android 12) -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
+    <!-- Enabling notifications -->    
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 </manifest>

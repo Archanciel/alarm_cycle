@@ -7,7 +7,9 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path/path.dart' as path;
@@ -19,10 +21,39 @@ void main() => runApp(
       ),
     );
 
+class DateTimeParser {
+  static DateFormat englishDateTimeFormat = DateFormat("yyyy-MM-dd HH:mm");
+  static DateFormat englishDateTimeFormatWithSec =
+      DateFormat("yyyy-MM-dd HH:mm:ss");
+  static DateFormat frenchDateTimeFormat = DateFormat("dd-MM-yyyy HH:mm");
+  static DateFormat HHmmDateTimeFormat = DateFormat("HH:mm");
+
+  /// Examples: 2021-01-01T10:35 --> 2021-01-01T11:00
+  ///           2021-01-01T10:25 --> 2021-01-01T10:00
+  static DateTime roundDateTimeToHour(DateTime dateTime) {
+    if (dateTime.minute >= 30) {
+      return DateTime(dateTime.year, dateTime.month, dateTime.day,
+          dateTime.hour + 1, 0, 0, 0, 0);
+    } else {
+      return DateTime(dateTime.year, dateTime.month, dateTime.day,
+          dateTime.hour, 0, 0, 0, 0);
+    }
+  }
+
+  /// This method takes a DateTime object as input and returns a new DateTime
+  /// object with the same year, month, day, hour, and minute as the input,
+  /// but with seconds and milliseconds set to zero. Essentially, it rounds
+  /// the input DateTime object down to the nearest minute.
+  static DateTime truncateDateTimeToMinute(DateTime dateTime) {
+    return DateTimeParser.englishDateTimeFormat
+        .parse(DateTimeParser.englishDateTimeFormat.format(dateTime));
+  }
+}
+
 class Alarm {
   String name;
   DateTime nextAlarmTime;
-  Duration resilientDuration;
+  Duration periodicDuration;
   String audioFilePath;
 
   // State of the alarm audio
@@ -45,7 +76,7 @@ class Alarm {
   Alarm({
     required this.name,
     required this.nextAlarmTime,
-    required this.resilientDuration,
+    required this.periodicDuration,
     required this.audioFilePath,
   });
 
@@ -53,14 +84,14 @@ class Alarm {
   Map<String, dynamic> toJson() => {
         'name': name,
         'nextAlarmTime': nextAlarmTime.toIso8601String(),
-        'resilientDuration': resilientDuration.inSeconds,
+        'periodicDurationSeconds': periodicDuration.inSeconds,
         'audioFilePath': audioFilePath,
       };
 
   factory Alarm.fromJson(Map<String, dynamic> json) => Alarm(
         name: json['name'],
         nextAlarmTime: DateTime.parse(json['nextAlarmTime']),
-        resilientDuration: Duration(seconds: json['resilientDuration']),
+        periodicDuration: Duration(seconds: json['periodicDurationSeconds']),
         audioFilePath: json['audioFilePath'],
       );
 
@@ -71,12 +102,12 @@ class Alarm {
 
 class AudioPlayerVM extends ChangeNotifier {
   /// Play an audio file located in the assets folder.
-  /// 
+  ///
   /// Example: audioFilePath = 'audio/Sirdalud.mp3' if
   /// the audio file is located in the assets/audio folder.
   Future<void> playFromAssets(Alarm alarm) async {
     final file = File(alarm.audioFilePath);
-    
+
     if (!await file.exists()) {
       print('File not found: ${alarm.audioFilePath}');
     }
@@ -126,6 +157,7 @@ class AlarmViewModel with ChangeNotifier {
 
   AlarmViewModel() {
     _loadAlarms();
+    _initializeNotifications();
 
     timer = Timer.periodic(const Duration(minutes: 1), _checkAlarms);
   }
@@ -173,11 +205,12 @@ class AlarmViewModel with ChangeNotifier {
 
     for (Alarm alarm in alarms) {
       if (alarm.nextAlarmTime.isBefore(now)) {
-        // _triggerNotification(alarm);
+        _triggerNotification(alarm);
         await audioPlayerVM.playFromAssets(alarm);
 
         // Update the nextAlarmTime
-        alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.resilientDuration);
+        alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
+            .add(alarm.periodicDuration);
         wasAlarnModified = true;
       }
     }
@@ -194,8 +227,7 @@ class AlarmViewModel with ChangeNotifier {
 
     // Since the user entered the audio file name only, we need to add
     // the path to the assets folder
-    alarm.audioFilePath = 'audio${path.
-    separator}${alarm.audioFilePath}';
+    alarm.audioFilePath = 'audio${path.separator}${alarm.audioFilePath}';
     alarms.add(alarm);
     _saveAlarms();
 
@@ -211,7 +243,7 @@ class AlarmViewModel with ChangeNotifier {
 
   _initializeNotifications() async {
     AndroidInitializationSettings initializationSettingsAndroid =
-        const AndroidInitializationSettings('ic_launcher');
+        const AndroidInitializationSettings('@mipmap/ic_launcher');
     InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
     await localNotifications.initialize(initializationSettings);
@@ -222,10 +254,11 @@ class AlarmViewModel with ChangeNotifier {
         const AndroidNotificationDetails(
       'alarm_notif',
       'Alarm Notifications',
+      icon: '@mipmap/ic_launcher',
       channelDescription: 'Notifications for Alarm app',
       importance: Importance.max,
       priority: Priority.high,
-      playSound: false, // We will play our own sound using flutter_sound
+      playSound: false, // We will play our own sound using audio player
     );
 
     NotificationDetails platformChannelSpecifics =
@@ -260,6 +293,47 @@ class AlarmPage extends StatefulWidget {
 }
 
 class _AlarmPageState extends State<AlarmPage> {
+  @override
+  void initState() {
+    requestMultiplePermissions();
+    super.initState();
+  }
+
+  /// Requires adding the lines below to the main and debug AndroidManifest.xml
+  /// files in order to work on S20 - Android 13 !
+  ///     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+  ///     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+  ///     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+  void requestMultiplePermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+      Permission
+          .manageExternalStorage, // Android 11 (API level 30) or higher only
+      Permission.microphone,
+      Permission.mediaLibrary,
+      Permission.speech,
+      Permission.audio,
+      Permission.videos,
+      Permission.notification
+    ].request();
+
+    // Vous pouvez maintenant vérifier l'état de chaque permission
+    if (!statuses[Permission.storage]!.isGranted ||
+        !statuses[Permission.manageExternalStorage]!.isGranted ||
+        !statuses[Permission.microphone]!.isGranted ||
+        !statuses[Permission.mediaLibrary]!.isGranted ||
+        !statuses[Permission.speech]!.isGranted ||
+        !statuses[Permission.audio]!.isGranted ||
+        !statuses[Permission.videos]!.isGranted ||
+        !statuses[Permission.notification]!.isGranted) {
+      // Une ou plusieurs permissions n'ont pas été accordées.
+      // Vous pouvez désactiver les fonctionnalités correspondantes dans
+      // votre application ou montrer une alerte à l'utilisateur.
+    } else {
+      // Toutes les permissions ont été accordées, vous pouvez continuer avec vos fonctionnalités.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -361,7 +435,7 @@ class _AlarmPageState extends State<AlarmPage> {
                 Navigator.of(context).pop(Alarm(
                     name: name,
                     nextAlarmTime: nextAlarmTime,
-                    resilientDuration: resilientDuration,
+                    periodicDuration: resilientDuration,
                     audioFilePath: audioFileName));
               },
             ),

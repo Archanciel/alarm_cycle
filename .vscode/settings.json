@@ -1,4 +1,8 @@
 {
   "cmake.configureOnOpen": false,
-  "cmake.sourceDirectory": "C:/Users/Jean-Pierre/Development/Flutter/alarm_cycle/linux"
+  "cmake.sourceDirectory": "C:/Users/Jean-Pierre/Development/Flutter/alarm_cycle/linux",
+  "dart.flutterCustomEmulators": [
+    
+    
+  ]
 }
