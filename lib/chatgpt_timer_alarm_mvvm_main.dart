@@ -223,11 +223,10 @@ class AlarmViewModel with ChangeNotifier {
   }
 
   addAlarm(Alarm alarm) {
-    // alarm.audioFilePath = 'assets${path.separator}audio${path.separator}${alarm.audioFilePath}';
-
     // Since the user entered the audio file name only, we need to add
-    // the path to the assets folder
-    alarm.audioFilePath = 'audio${path.separator}${alarm.audioFilePath}';
+    // the path to the assets folder. Path separator must be / and not \
+    // since the assets/audio path is defined in the pubspec.yaml file.
+    alarm.audioFilePath = 'audio/${alarm.audioFilePath}';
     alarms.add(alarm);
     _saveAlarms();
 
@@ -299,11 +298,6 @@ class _AlarmPageState extends State<AlarmPage> {
     super.initState();
   }
 
-  /// Requires adding the lines below to the main and debug AndroidManifest.xml
-  /// files in order to work on S20 - Android 13 !
-  ///     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-  ///     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
-  ///     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
   void requestMultiplePermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.storage,
@@ -330,7 +324,8 @@ class _AlarmPageState extends State<AlarmPage> {
       // Vous pouvez désactiver les fonctionnalités correspondantes dans
       // votre application ou montrer une alerte à l'utilisateur.
     } else {
-      // Toutes les permissions ont été accordées, vous pouvez continuer avec vos fonctionnalités.
+      // Toutes les permissions ont été accordées, vous pouvez continuer avec
+      // vos fonctionnalités.
     }
   }
 
@@ -345,7 +340,8 @@ class _AlarmPageState extends State<AlarmPage> {
             final alarm = viewModel.alarms[index];
             return ListTile(
               title: Text(alarm.name),
-              subtitle: Text('Prochaine alarme: ${alarm.nextAlarmTime}'),
+              subtitle: Text(
+                  'Prochaine alarme: ${DateTimeParser.frenchDateTimeFormat.format(alarm.nextAlarmTime)}'),
               trailing: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () => viewModel.deleteAlarm(index),
@@ -373,8 +369,10 @@ class _AlarmPageState extends State<AlarmPage> {
 
   Future<Alarm?> _showAddAlarmDialog(BuildContext context) async {
     TextEditingController nameController = TextEditingController();
-    TextEditingController timeController =
-        TextEditingController(); // For simplicity, you can use "hh:mm" format
+    TextEditingController timeController = TextEditingController(
+        text: DateTimeParser.HHmmDateTimeFormat.format(
+            DateTimeParser.truncateDateTimeToMinute(
+                DateTime.now()))); // For simplicity, you can use "hh:mm" format
     TextEditingController durationController =
         TextEditingController(); // Again, use "hh:mm" format
     TextEditingController audioFileController = TextEditingController();
