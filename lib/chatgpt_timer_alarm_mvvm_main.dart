@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -258,7 +259,7 @@ class AlarmViewModel with ChangeNotifier {
     // the path to the assets folder. Path separator must be / and not \
     // since the assets/audio path is defined in the pubspec.yaml file.
     alarm.audioFilePathName = 'audio/${alarm.audioFilePathName}';
-    
+
     alarms[index] = alarm;
     _saveAlarms();
 
@@ -321,6 +322,38 @@ class AlarmPage extends StatefulWidget {
 
   @override
   _AlarmPageState createState() => _AlarmPageState();
+
+  Widget createInfoRowFunction({
+    Key? valueTextWidgetKey, // key set to the Text widget displaying the value
+    required BuildContext context,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(label),
+          ),
+          Expanded(
+            child: InkWell(
+              child: Text(
+                key: valueTextWidgetKey,
+                value,
+              ),
+              onTap: () {
+                Clipboard.setData(
+                  ClipboardData(text: value),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _AlarmPageState extends State<AlarmPage> {
@@ -372,8 +405,29 @@ class _AlarmPageState extends State<AlarmPage> {
             final alarm = viewModel.alarms[index];
             return ListTile(
               title: Text(alarm.name),
-              subtitle: Text(
-                  'Prochaine alarme: ${DateTimeParser.frenchDateTimeFormat.format(alarm.nextAlarmTime)}'),
+              subtitle: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Aligns the text to the left
+                children: [
+                  widget.createInfoRowFunction(
+                    context: context,
+                    label: 'Next alarm: ',
+                    value: DateTimeParser.frenchDateTimeFormat
+                        .format(alarm.nextAlarmTime),
+                  ),
+                  widget.createInfoRowFunction(
+                    context: context,
+                    label: 'Periodicity:',
+                    value:
+                        '${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}',
+                  ),
+                  widget.createInfoRowFunction(
+                    context: context,
+                    label: 'Audio file:',
+                    value: '${alarm.audioFilePathName.split('/').last}',
+                  ),
+                ],
+              ),
               trailing: IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () => viewModel.deleteAlarm(index),
@@ -404,9 +458,13 @@ class _AlarmPageState extends State<AlarmPage> {
     TextEditingController timeController = TextEditingController(
         text: DateTimeParser.HHmmDateTimeFormat.format(
             DateTimeParser.truncateDateTimeToMinute(
-                DateTime.now()))); // For simplicity, you can use "hh:mm" format
+                DateTime.now())));
     TextEditingController durationController =
-        TextEditingController(); // Again, use "hh:mm" format
+        TextEditingController();
+
+    // Set the default value of the dropdown button menu
+    Provider.of<AlarmViewModel>(context, listen: false)
+        .selectedAudioFile = AlarmViewModel.audioFileNames[0];
 
     return showDialog<Alarm>(
       context: context,
@@ -427,8 +485,8 @@ class _AlarmPageState extends State<AlarmPage> {
                 ),
                 TextFormField(
                   controller: durationController,
-                  decoration: const InputDecoration(
-                      labelText: 'Resilient Duration (hh:mm)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Periodicity (hh:mm)'),
                 ),
                 Consumer<AlarmViewModel>(
                   builder: (context, viewModel, child) =>
@@ -496,6 +554,10 @@ class _AlarmPageState extends State<AlarmPage> {
     TextEditingController durationController = TextEditingController(
         text:
             "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
+
+    // Set the value of the dropdown button menu
+    Provider.of<AlarmViewModel>(context, listen: false)
+        .selectedAudioFile = alarm.audioFilePathName.split('/').last;
 
     showDialog(
       context: context,
@@ -566,8 +628,8 @@ class _AlarmPageState extends State<AlarmPage> {
                     Provider.of<AlarmViewModel>(context, listen: false)
                         .selectedAudioFile;
 
-            Provider.of<AlarmViewModel>(context, listen: false)
-                .editAlarm(alarm);
+                Provider.of<AlarmViewModel>(context, listen: false)
+                    .editAlarm(alarm);
 
                 Navigator.of(context).pop(); // Close the dialog
               },
