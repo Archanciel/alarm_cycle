@@ -12,7 +12,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:path/path.dart' as path;
 
 void main() => runApp(
       ChangeNotifierProvider(
@@ -54,7 +53,7 @@ class Alarm {
   String name;
   DateTime nextAlarmTime;
   Duration periodicDuration;
-  String audioFilePath;
+  String audioFilePathName;
 
   // State of the alarm audio
 
@@ -77,7 +76,7 @@ class Alarm {
     required this.name,
     required this.nextAlarmTime,
     required this.periodicDuration,
-    required this.audioFilePath,
+    required this.audioFilePathName,
   });
 
   // Convertir un Alarme à partir de et vers un objet Map (pour la sérialisation JSON)
@@ -85,14 +84,14 @@ class Alarm {
         'name': name,
         'nextAlarmTime': nextAlarmTime.toIso8601String(),
         'periodicDurationSeconds': periodicDuration.inSeconds,
-        'audioFilePath': audioFilePath,
+        'audioFilePathName': audioFilePathName,
       };
 
   factory Alarm.fromJson(Map<String, dynamic> json) => Alarm(
         name: json['name'],
         nextAlarmTime: DateTime.parse(json['nextAlarmTime']),
         periodicDuration: Duration(seconds: json['periodicDurationSeconds']),
-        audioFilePath: json['audioFilePath'],
+        audioFilePathName: json['audioFilePathName'],
       );
 
   void invertPaused() {
@@ -106,10 +105,10 @@ class AudioPlayerVM extends ChangeNotifier {
   /// Example: audioFilePath = 'audio/Sirdalud.mp3' if
   /// the audio file is located in the assets/audio folder.
   Future<void> playFromAssets(Alarm alarm) async {
-    final file = File(alarm.audioFilePath);
+    final file = File(alarm.audioFilePathName);
 
     if (!await file.exists()) {
-      print('File not found: ${alarm.audioFilePath}');
+      print('File not found: ${alarm.audioFilePathName}');
     }
 
     AudioPlayer? audioPlayer = alarm.audioPlayer;
@@ -119,7 +118,7 @@ class AudioPlayerVM extends ChangeNotifier {
       alarm.audioPlayer = audioPlayer;
     }
 
-    await audioPlayer.play(AssetSource(alarm.audioFilePath));
+    await audioPlayer.play(AssetSource(alarm.audioFilePathName));
     alarm.isPlaying = true;
 
     notifyListeners();
@@ -155,11 +154,25 @@ class AlarmViewModel with ChangeNotifier {
 
   AudioPlayerVM audioPlayerVM = AudioPlayerVM();
 
+  static const List<String> audioFileNames = [
+    'Sirdalud.mp3',
+    'Lioresal.mp3',
+    // ... other files
+  ];
+
+  String _selectedAudioFile = audioFileNames.first;
+  String get selectedAudioFile => _selectedAudioFile;
+  set selectedAudioFile(String newValue) {
+    _selectedAudioFile = newValue;
+
+    notifyListeners();
+  }
+
   AlarmViewModel() {
     _loadAlarms();
     _initializeNotifications();
 
-    timer = Timer.periodic(const Duration(minutes: 1), _checkAlarms);
+    timer = Timer.periodic(const Duration(minutes: 1), checkAlarmsPeriodically);
   }
 
   Future<void> _loadAlarms() async {
@@ -196,9 +209,10 @@ class AlarmViewModel with ChangeNotifier {
     await filePath.writeAsString(json.encode(jsonAlarms));
   }
 
-  Future<void> _checkAlarms(Timer t) async {
-    // Vérifiez si une alarme doit être déclenchée
-
+  /// Method called by Timer.periodic to check if an alarm should be
+  /// triggered. If an alarm is triggered, its nextAlarmTime is updated
+  /// and the updated alarm is saved to the JSON file.
+  Future<void> checkAlarmsPeriodically(Timer t) async {
     bool wasAlarnModified = false;
 
     DateTime now = DateTime.now();
@@ -226,7 +240,7 @@ class AlarmViewModel with ChangeNotifier {
     // Since the user entered the audio file name only, we need to add
     // the path to the assets folder. Path separator must be / and not \
     // since the assets/audio path is defined in the pubspec.yaml file.
-    alarm.audioFilePath = 'audio/${alarm.audioFilePath}';
+    alarm.audioFilePathName = 'audio/${alarm.audioFilePathName}';
     alarms.add(alarm);
     _saveAlarms();
 
@@ -375,7 +389,6 @@ class _AlarmPageState extends State<AlarmPage> {
                 DateTime.now()))); // For simplicity, you can use "hh:mm" format
     TextEditingController durationController =
         TextEditingController(); // Again, use "hh:mm" format
-    TextEditingController audioFileController = TextEditingController();
 
     return showDialog<Alarm>(
       context: context,
@@ -399,10 +412,22 @@ class _AlarmPageState extends State<AlarmPage> {
                   decoration: const InputDecoration(
                       labelText: 'Resilient Duration (hh:mm)'),
                 ),
-                TextFormField(
-                  controller: audioFileController,
-                  decoration: const InputDecoration(
-                      labelText: 'Audio File Name (e.g., Flutter.mp3)'),
+                Consumer<AlarmViewModel>(
+                  builder: (context, viewModel, child) =>
+                      DropdownButton<String>(
+                    value: viewModel.selectedAudioFile,
+                    items: AlarmViewModel.audioFileNames.map((String fileName) {
+                      return DropdownMenuItem<String>(
+                        value: fileName,
+                        child: Text(fileName),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        viewModel.selectedAudioFile = newValue;
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -429,12 +454,14 @@ class _AlarmPageState extends State<AlarmPage> {
                   hours: int.parse(durationController.text.split(':')[0]),
                   minutes: int.parse(durationController.text.split(':')[1]),
                 );
-                final audioFileName = audioFileController.text;
+
                 Navigator.of(context).pop(Alarm(
                     name: name,
                     nextAlarmTime: nextAlarmTime,
                     periodicDuration: resilientDuration,
-                    audioFilePath: audioFileName));
+                    audioFilePathName: Provider.of<AlarmViewModel>(context,
+                            listen: false)
+                        .selectedAudioFile));
               },
             ),
           ],
