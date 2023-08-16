@@ -237,11 +237,29 @@ class AlarmViewModel with ChangeNotifier {
   }
 
   addAlarm(Alarm alarm) {
-    // Since the user entered the audio file name only, we need to add
+    // Since the user selected the audio file name only, we need to add
     // the path to the assets folder. Path separator must be / and not \
     // since the assets/audio path is defined in the pubspec.yaml file.
     alarm.audioFilePathName = 'audio/${alarm.audioFilePathName}';
     alarms.add(alarm);
+    _saveAlarms();
+
+    notifyListeners();
+  }
+
+  editAlarm(Alarm alarm) {
+    int index = alarms.indexWhere((element) => element.name == alarm.name);
+
+    if (index == -1) {
+      return;
+    }
+
+    // Since the user selected the audio file name only, we need to add
+    // the path to the assets folder. Path separator must be / and not \
+    // since the assets/audio path is defined in the pubspec.yaml file.
+    alarm.audioFilePathName = 'audio/${alarm.audioFilePathName}';
+    
+    alarms[index] = alarm;
     _saveAlarms();
 
     notifyListeners();
@@ -450,7 +468,7 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTime.now().day,
                     int.parse(timeController.text.split(':')[0]),
                     int.parse(timeController.text.split(':')[1]));
-                final resilientDuration = Duration(
+                final periodicDuration = Duration(
                   hours: int.parse(durationController.text.split(':')[0]),
                   minutes: int.parse(durationController.text.split(':')[1]),
                 );
@@ -458,10 +476,10 @@ class _AlarmPageState extends State<AlarmPage> {
                 Navigator.of(context).pop(Alarm(
                     name: name,
                     nextAlarmTime: nextAlarmTime,
-                    periodicDuration: resilientDuration,
-                    audioFilePathName: Provider.of<AlarmViewModel>(context,
-                            listen: false)
-                        .selectedAudioFile));
+                    periodicDuration: periodicDuration,
+                    audioFilePathName:
+                        Provider.of<AlarmViewModel>(context, listen: false)
+                            .selectedAudioFile));
               },
             ),
           ],
@@ -471,31 +489,87 @@ class _AlarmPageState extends State<AlarmPage> {
   }
 
   _showEditAlarmDialog(Alarm alarm) {
+    TextEditingController nameController =
+        TextEditingController(text: alarm.name);
+    TextEditingController timeController = TextEditingController(
+        text: DateTimeParser.HHmmDateTimeFormat.format(alarm.nextAlarmTime));
+    TextEditingController durationController = TextEditingController(
+        text:
+            "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Alarm Triggered!'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Name: ${alarm.name}'),
-              Text('Next Alarm Time: ${alarm.nextAlarmTime}'),
-              // Add more details as required
-            ],
+          title: const Text('Edit Alarm'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+                TextFormField(
+                  controller: timeController,
+                  decoration: const InputDecoration(
+                      labelText: 'Next Alarm Time (hh:mm)'),
+                ),
+                TextFormField(
+                  controller: durationController,
+                  decoration: const InputDecoration(
+                      labelText: 'Resilient Duration (hh:mm)'),
+                ),
+                Consumer<AlarmViewModel>(
+                  builder: (context, viewModel, child) =>
+                      DropdownButton<String>(
+                    value: viewModel.selectedAudioFile,
+                    items: AlarmViewModel.audioFileNames.map((String fileName) {
+                      return DropdownMenuItem<String>(
+                        value: fileName,
+                        child: Text(fileName),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        viewModel.selectedAudioFile = newValue;
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              child: const Text('Edit'),
+              child: const Text('Cancel'),
               onPressed: () {
-                // Navigate to the edit page or display another dialog
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Dismiss'),
+              child: const Text('Save Changes'),
               onPressed: () {
-                Navigator.of(context).pop();
+                // Update the current alarm's details
+                alarm.name = nameController.text;
+                alarm.nextAlarmTime = DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                    int.parse(timeController.text.split(':')[0]),
+                    int.parse(timeController.text.split(':')[1]));
+                alarm.periodicDuration = Duration(
+                  hours: int.parse(durationController.text.split(':')[0]),
+                  minutes: int.parse(durationController.text.split(':')[1]),
+                );
+                alarm.audioFilePathName =
+                    Provider.of<AlarmViewModel>(context, listen: false)
+                        .selectedAudioFile;
+
+            Provider.of<AlarmViewModel>(context, listen: false)
+                .editAlarm(alarm);
+
+                Navigator.of(context).pop(); // Close the dialog
               },
             ),
           ],
