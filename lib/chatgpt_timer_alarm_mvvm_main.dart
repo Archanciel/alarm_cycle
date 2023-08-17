@@ -291,6 +291,7 @@ class AlarmViewModel with ChangeNotifier {
       importance: Importance.max,
       priority: Priority.high,
       playSound: false, // We will play our own sound using audio player
+      ongoing: true,
     );
 
     NotificationDetails platformChannelSpecifics =
