@@ -335,62 +335,115 @@ class SimpleEditAlarmScreen extends StatefulWidget {
   const SimpleEditAlarmScreen({required this.alarm});
 
   @override
-  _SimpleEditAlarmScreenState createState() => _SimpleEditAlarmScreenState();
+  _SimpleEditAlarmScreenState createState() => _SimpleEditAlarmScreenState(
+        alarm: alarm,
+      );
 }
 
 class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
+  final Alarm _alarm;
+
+  _SimpleEditAlarmScreenState({
+    required Alarm alarm,
+  }) : _alarm = alarm;
+
   // Your simple edit logic here, maybe just a few key fields rather than everything.
+  @override
+  void initState() {
+    super.initState();
+
+    // Set the value of the dropdown button menu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
+          _alarm.audioFilePathName.split('/').last;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     TextEditingController nameController =
-        TextEditingController(text: widget.alarm.name);
+        TextEditingController(text: _alarm.name);
     TextEditingController timeController = TextEditingController(
         text: DateTimeParser.HHmmDateTimeFormat.format(
-            widget.alarm.nextAlarmTime));
+            _alarm.nextAlarmTime));
     TextEditingController durationController = TextEditingController(
         text:
-            "${widget.alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(widget.alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
-
-    // Set the value of the dropdown button menu
-    Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
-        widget.alarm.audioFilePathName.split('/').last;
+            "${_alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(_alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
     return Scaffold(
       appBar: AppBar(
         title: const Text("Edit Alarm"),
       ),
-      body: Column(
-        children: [
-          TextFormField(
-            controller: nameController,
-            decoration: const InputDecoration(labelText: 'Name'),
-          ),
-          TextFormField(
-            controller: timeController,
-            decoration:
-                const InputDecoration(labelText: 'Next Alarm Time (hh:mm)'),
-          ),
-          TextFormField(
-            controller: durationController,
-            decoration:
-                const InputDecoration(labelText: 'Resilient Duration (hh:mm)'),
-          ),
-          Consumer<AlarmViewModel>(
-            builder: (context, viewModel, child) => DropdownButton<String>(
-              value: viewModel.selectedAudioFile,
-              items: AlarmViewModel.audioFileNames.map((String fileName) {
-                return DropdownMenuItem<String>(
-                  value: fileName,
-                  child: Text(fileName),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                if (newValue != null) {
-                  viewModel.selectedAudioFile = newValue;
-                }
-              },
+      body: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        child: Column(
+          children: [
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
             ),
-          ),
-        ],
+            TextFormField(
+              controller: timeController,
+              decoration:
+                  const InputDecoration(labelText: 'Next Alarm Time (hh:mm)'),
+            ),
+            TextFormField(
+              controller: durationController,
+              decoration: const InputDecoration(
+                  labelText: 'Resilient Duration (hh:mm)'),
+            ),
+            Consumer<AlarmViewModel>(
+              builder: (context, viewModel, child) => DropdownButton<String>(
+                value: viewModel.selectedAudioFile,
+                items: AlarmViewModel.audioFileNames.map((String fileName) {
+                  return DropdownMenuItem<String>(
+                    value: fileName,
+                    child: Text(fileName),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  if (newValue != null) {
+                    viewModel.selectedAudioFile = newValue;
+                  }
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Save Changes'),
+                  onPressed: () {
+                    // Update the current alarm's details
+                    _alarm.name = nameController.text;
+                    _alarm.nextAlarmTime = DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month,
+                        DateTime.now().day,
+                        int.parse(timeController.text.split(':')[0]),
+                        int.parse(timeController.text.split(':')[1]));
+                    _alarm.periodicDuration = Duration(
+                      hours: int.parse(durationController.text.split(':')[0]),
+                      minutes: int.parse(durationController.text.split(':')[1]),
+                    );
+
+                    AlarmViewModel alarmVM =
+                        Provider.of<AlarmViewModel>(context, listen: false);
+                    _alarm.audioFilePathName = alarmVM.selectedAudioFile;
+                    alarmVM.editAlarm(_alarm);
+
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -404,7 +457,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Alarm App',
       navigatorKey: navigatorKey,
-      home: AlarmPage(),
+      home: const AlarmPage(),
     );
   }
 }
@@ -492,38 +545,43 @@ class _AlarmPageState extends State<AlarmPage> {
           itemCount: viewModel.alarms.length,
           itemBuilder: (context, index) {
             final alarm = viewModel.alarms[index];
-            return ListTile(
-              title: Text(alarm.name),
-              subtitle: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // Aligns the text to the left
-                children: [
-                  widget.createInfoRowFunction(
-                    context: context,
-                    label: 'Next alarm: ',
-                    value: DateTimeParser.frenchDateTimeFormat
-                        .format(alarm.nextAlarmTime),
-                  ),
-                  widget.createInfoRowFunction(
-                    context: context,
-                    label: 'Periodicity:',
-                    value:
-                        '${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}',
-                  ),
-                  widget.createInfoRowFunction(
-                    context: context,
-                    label: 'Audio file:',
-                    value: '${alarm.audioFilePathName.split('/').last}',
-                  ),
-                ],
+            return Container(
+              margin: const EdgeInsets.symmetric(
+                vertical: 15,
               ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () => viewModel.deleteAlarm(index),
+              child: ListTile(
+                title: Text(alarm.name),
+                subtitle: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start, // Aligns the text to the left
+                  children: [
+                    widget.createInfoRowFunction(
+                      context: context,
+                      label: 'Next alarm: ',
+                      value: DateTimeParser.frenchDateTimeFormat
+                          .format(alarm.nextAlarmTime),
+                    ),
+                    widget.createInfoRowFunction(
+                      context: context,
+                      label: 'Periodicity:',
+                      value:
+                          '${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}',
+                    ),
+                    widget.createInfoRowFunction(
+                      context: context,
+                      label: 'Audio file:',
+                      value: '${alarm.audioFilePathName.split('/').last}',
+                    ),
+                  ],
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => viewModel.deleteAlarm(index),
+                ),
+                onTap: () {
+                  _showEditAlarmDialog(alarm);
+                },
               ),
-              onTap: () {
-                _showEditAlarmDialog(alarm);
-              },
             );
           },
         ),
@@ -550,8 +608,9 @@ class _AlarmPageState extends State<AlarmPage> {
     TextEditingController durationController = TextEditingController();
 
     // Set the default value of the dropdown button menu
-    Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
-        AlarmViewModel.audioFileNames[0];
+    AlarmViewModel alarmVM =
+        Provider.of<AlarmViewModel>(context, listen: false);
+    alarmVM.selectedAudioFile = AlarmViewModel.audioFileNames[0];
 
     return showDialog<Alarm>(
       context: context,
@@ -622,9 +681,7 @@ class _AlarmPageState extends State<AlarmPage> {
                     name: name,
                     nextAlarmTime: nextAlarmTime,
                     periodicDuration: periodicDuration,
-                    audioFilePathName:
-                        Provider.of<AlarmViewModel>(context, listen: false)
-                            .selectedAudioFile));
+                    audioFilePathName: alarmVM.selectedAudioFile));
               },
             ),
           ],
@@ -643,8 +700,9 @@ class _AlarmPageState extends State<AlarmPage> {
             "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
 
     // Set the value of the dropdown button menu
-    Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
-        alarm.audioFilePathName.split('/').last;
+    AlarmViewModel alarmVM =
+        Provider.of<AlarmViewModel>(context, listen: false);
+    alarmVM.selectedAudioFile = alarm.audioFilePathName.split('/').last;
 
     showDialog(
       context: context,
@@ -711,12 +769,8 @@ class _AlarmPageState extends State<AlarmPage> {
                   hours: int.parse(durationController.text.split(':')[0]),
                   minutes: int.parse(durationController.text.split(':')[1]),
                 );
-                alarm.audioFilePathName =
-                    Provider.of<AlarmViewModel>(context, listen: false)
-                        .selectedAudioFile;
-
-                Provider.of<AlarmViewModel>(context, listen: false)
-                    .editAlarm(alarm);
+                alarm.audioFilePathName = alarmVM.selectedAudioFile;
+                alarmVM.editAlarm(alarm);
 
                 Navigator.of(context).pop(); // Close the dialog
               },
