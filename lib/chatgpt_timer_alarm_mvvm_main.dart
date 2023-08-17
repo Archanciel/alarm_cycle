@@ -150,7 +150,7 @@ class AlarmViewModel with ChangeNotifier {
   List<Alarm> alarms = [];
   late Timer timer;
 
-  FlutterLocalNotificationsPlugin localNotifications =
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   AudioPlayerVM audioPlayerVM = AudioPlayerVM();
@@ -237,7 +237,7 @@ class AlarmViewModel with ChangeNotifier {
     }
   }
 
-  addAlarm(Alarm alarm) {
+  void addAlarm(Alarm alarm) {
     // Since the user selected the audio file name only, we need to add
     // the path to the assets folder. Path separator must be / and not \
     // since the assets/audio path is defined in the pubspec.yaml file.
@@ -248,7 +248,7 @@ class AlarmViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  editAlarm(Alarm alarm) {
+  void editAlarm(Alarm alarm) {
     int index = alarms.indexWhere((element) => element.name == alarm.name);
 
     if (index == -1) {
@@ -266,19 +266,39 @@ class AlarmViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  deleteAlarm(int index) {
+  void deleteAlarm(int index) {
     alarms.removeAt(index);
     _saveAlarms();
 
     notifyListeners();
   }
 
-  _initializeNotifications() async {
+  Future<void> _initializeNotifications() async {
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/ic_launcher');
-    InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-    await localNotifications.initialize(initializationSettings);
+    InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: _onDidReceiveLocalNotification,
+    );
+  }
+
+  Future<void> _onDidReceiveLocalNotification(
+      NotificationResponse response) async {
+    // Handle the notification interaction here
+    print('****** Received notification payload: "${response.payload}"');
+
+    if (response.payload == null || response.payload?.isEmpty == true) {
+      return;
+    }
+
+    // The payload can be used to identify which Alarm was clicked, and you can call the edit method here
+    // For example, if the payload is the name of the alarm:
+    Alarm selectedAlarm = alarms.firstWhere((a) => a.name == response.payload);
+
+    print('***** Alarm selected: ${selectedAlarm.name}');
   }
 
   Future<void> _triggerNotification(Alarm alarm) async {
@@ -297,11 +317,12 @@ class AlarmViewModel with ChangeNotifier {
     NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
-    await localNotifications.show(
+    await flutterLocalNotificationsPlugin.show(
       0, // ID
       'Alarm Triggered',
       'Alarm: ${alarm.name} has been triggered!',
       platformChannelSpecifics,
+      payload: alarm.name, // This is used to identify which alarm was triggered
     );
   }
 }
@@ -455,14 +476,12 @@ class _AlarmPageState extends State<AlarmPage> {
     TextEditingController nameController = TextEditingController();
     TextEditingController timeController = TextEditingController(
         text: DateTimeParser.HHmmDateTimeFormat.format(
-            DateTimeParser.truncateDateTimeToMinute(
-                DateTime.now())));
-    TextEditingController durationController =
-        TextEditingController();
+            DateTimeParser.truncateDateTimeToMinute(DateTime.now())));
+    TextEditingController durationController = TextEditingController();
 
     // Set the default value of the dropdown button menu
-    Provider.of<AlarmViewModel>(context, listen: false)
-        .selectedAudioFile = AlarmViewModel.audioFileNames[0];
+    Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
+        AlarmViewModel.audioFileNames[0];
 
     return showDialog<Alarm>(
       context: context,
@@ -554,8 +573,8 @@ class _AlarmPageState extends State<AlarmPage> {
             "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
 
     // Set the value of the dropdown button menu
-    Provider.of<AlarmViewModel>(context, listen: false)
-        .selectedAudioFile = alarm.audioFilePathName.split('/').last;
+    Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
+        alarm.audioFilePathName.split('/').last;
 
     showDialog(
       context: context,
