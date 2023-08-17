@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -18,7 +17,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() => runApp(
       ChangeNotifierProvider(
-        create: (context) => AlarmViewModel(),
+        create: (context) => AlarmVM(),
         child: const MyApp(),
       ),
     );
@@ -148,7 +147,7 @@ class AudioPlayerVM extends ChangeNotifier {
   }
 }
 
-class AlarmViewModel with ChangeNotifier {
+class AlarmVM with ChangeNotifier {
   List<Alarm> alarms = [];
   late Timer timer;
 
@@ -171,7 +170,7 @@ class AlarmViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  AlarmViewModel() {
+  AlarmVM() {
     _loadAlarms();
     _initializeNotifications();
 
@@ -354,7 +353,7 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
 
     // Set the value of the dropdown button menu
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
+      Provider.of<AlarmVM>(context, listen: false).selectedAudioFile =
           _alarm.audioFilePathName.split('/').last;
     });
   }
@@ -390,10 +389,10 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
               decoration: const InputDecoration(
                   labelText: 'Resilient Duration (hh:mm)'),
             ),
-            Consumer<AlarmViewModel>(
+            Consumer<AlarmVM>(
               builder: (context, viewModel, child) => DropdownButton<String>(
                 value: viewModel.selectedAudioFile,
-                items: AlarmViewModel.audioFileNames.map((String fileName) {
+                items: AlarmVM.audioFileNames.map((String fileName) {
                   return DropdownMenuItem<String>(
                     value: fileName,
                     child: Text(fileName),
@@ -431,8 +430,8 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
                       minutes: int.parse(durationController.text.split(':')[1]),
                     );
 
-                    AlarmViewModel alarmVM =
-                        Provider.of<AlarmViewModel>(context, listen: false);
+                    AlarmVM alarmVM =
+                        Provider.of<AlarmVM>(context, listen: false);
                     _alarm.audioFilePathName = alarmVM.selectedAudioFile;
                     alarmVM.editAlarm(_alarm);
 
@@ -532,7 +531,7 @@ class _AlarmPageState extends State<AlarmPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Gestionnaire d'alarmes")),
-      body: Consumer<AlarmViewModel>(
+      body: Consumer<AlarmVM>(
         builder: (context, viewModel, child) => ListView.builder(
           itemCount: viewModel.alarms.length,
           itemBuilder: (context, index) {
@@ -589,7 +588,7 @@ class _AlarmPageState extends State<AlarmPage> {
           Alarm? newAlarm = await _showAddAlarmDialog(context);
           if (newAlarm != null) {
             // Assuming you have a method in your ViewModel to add alarms
-            Provider.of<AlarmViewModel>(context, listen: false)
+            Provider.of<AlarmVM>(context, listen: false)
                 .addAlarm(newAlarm);
           }
         },
@@ -605,9 +604,9 @@ class _AlarmPageState extends State<AlarmPage> {
     TextEditingController durationController = TextEditingController();
 
     // Set the default value of the dropdown button menu
-    AlarmViewModel alarmVM =
-        Provider.of<AlarmViewModel>(context, listen: false);
-    alarmVM.selectedAudioFile = AlarmViewModel.audioFileNames[0];
+    AlarmVM alarmVM =
+        Provider.of<AlarmVM>(context, listen: false);
+    alarmVM.selectedAudioFile = AlarmVM.audioFileNames[0];
 
     return showDialog<Alarm>(
       context: context,
@@ -631,11 +630,11 @@ class _AlarmPageState extends State<AlarmPage> {
                   decoration:
                       const InputDecoration(labelText: 'Periodicity (hh:mm)'),
                 ),
-                Consumer<AlarmViewModel>(
+                Consumer<AlarmVM>(
                   builder: (context, viewModel, child) =>
                       DropdownButton<String>(
                     value: viewModel.selectedAudioFile,
-                    items: AlarmViewModel.audioFileNames.map((String fileName) {
+                    items: AlarmVM.audioFileNames.map((String fileName) {
                       return DropdownMenuItem<String>(
                         value: fileName,
                         child: Text(fileName),
@@ -697,8 +696,8 @@ class _AlarmPageState extends State<AlarmPage> {
             "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
 
     // Set the value of the dropdown button menu
-    AlarmViewModel alarmVM =
-        Provider.of<AlarmViewModel>(context, listen: false);
+    AlarmVM alarmVM =
+        Provider.of<AlarmVM>(context, listen: false);
     alarmVM.selectedAudioFile = alarm.audioFilePathName.split('/').last;
 
     showDialog(
@@ -724,11 +723,11 @@ class _AlarmPageState extends State<AlarmPage> {
                   decoration: const InputDecoration(
                       labelText: 'Resilient Duration (hh:mm)'),
                 ),
-                Consumer<AlarmViewModel>(
+                Consumer<AlarmVM>(
                   builder: (context, viewModel, child) =>
                       DropdownButton<String>(
                     value: viewModel.selectedAudioFile,
-                    items: AlarmViewModel.audioFileNames.map((String fileName) {
+                    items: AlarmVM.audioFileNames.map((String fileName) {
                       return DropdownMenuItem<String>(
                         value: fileName,
                         child: Text(fileName),
