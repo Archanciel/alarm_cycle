@@ -14,6 +14,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() => runApp(
       ChangeNotifierProvider(
         create: (context) => AlarmViewModel(),
@@ -288,8 +290,6 @@ class AlarmViewModel with ChangeNotifier {
   Future<void> _onDidReceiveLocalNotification(
       NotificationResponse response) async {
     // Handle the notification interaction here
-    print('****** Received notification payload: "${response.payload}"');
-
     if (response.payload == null || response.payload?.isEmpty == true) {
       return;
     }
@@ -298,7 +298,9 @@ class AlarmViewModel with ChangeNotifier {
     // For example, if the payload is the name of the alarm:
     Alarm selectedAlarm = alarms.firstWhere((a) => a.name == response.payload);
 
-    print('***** Alarm selected: ${selectedAlarm.name}');
+    navigatorKey.currentState!.push(MaterialPageRoute(
+      builder: (context) => SimpleEditAlarmScreen(alarm: selectedAlarm),
+    ));
   }
 
   Future<void> _triggerNotification(Alarm alarm) async {
@@ -327,13 +329,81 @@ class AlarmViewModel with ChangeNotifier {
   }
 }
 
+class SimpleEditAlarmScreen extends StatefulWidget {
+  final Alarm alarm;
+
+  const SimpleEditAlarmScreen({required this.alarm});
+
+  @override
+  _SimpleEditAlarmScreenState createState() => _SimpleEditAlarmScreenState();
+}
+
+class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
+  // Your simple edit logic here, maybe just a few key fields rather than everything.
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController nameController =
+        TextEditingController(text: widget.alarm.name);
+    TextEditingController timeController = TextEditingController(
+        text: DateTimeParser.HHmmDateTimeFormat.format(
+            widget.alarm.nextAlarmTime));
+    TextEditingController durationController = TextEditingController(
+        text:
+            "${widget.alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(widget.alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
+
+    // Set the value of the dropdown button menu
+    Provider.of<AlarmViewModel>(context, listen: false).selectedAudioFile =
+        widget.alarm.audioFilePathName.split('/').last;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Edit Alarm"),
+      ),
+      body: Column(
+        children: [
+          TextFormField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
+          TextFormField(
+            controller: timeController,
+            decoration:
+                const InputDecoration(labelText: 'Next Alarm Time (hh:mm)'),
+          ),
+          TextFormField(
+            controller: durationController,
+            decoration:
+                const InputDecoration(labelText: 'Resilient Duration (hh:mm)'),
+          ),
+          Consumer<AlarmViewModel>(
+            builder: (context, viewModel, child) => DropdownButton<String>(
+              value: viewModel.selectedAudioFile,
+              items: AlarmViewModel.audioFileNames.map((String fileName) {
+                return DropdownMenuItem<String>(
+                  value: fileName,
+                  child: Text(fileName),
+                );
+              }).toList(),
+              onChanged: (newValue) {
+                if (newValue != null) {
+                  viewModel.selectedAudioFile = newValue;
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Alarm App',
+      navigatorKey: navigatorKey,
       home: AlarmPage(),
     );
   }
