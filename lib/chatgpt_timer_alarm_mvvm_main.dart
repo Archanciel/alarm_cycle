@@ -330,29 +330,26 @@ class AlarmPage extends StatefulWidget {
     required String label,
     required String value,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(label),
-          ),
-          Expanded(
-            child: InkWell(
-              child: Text(
-                key: valueTextWidgetKey,
-                value,
-              ),
-              onTap: () {
-                Clipboard.setData(
-                  ClipboardData(text: value),
-                );
-              },
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(label),
+        ),
+        Expanded(
+          child: InkWell(
+            child: Text(
+              key: valueTextWidgetKey,
+              value,
             ),
+            onTap: () {
+              Clipboard.setData(
+                ClipboardData(text: value),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
