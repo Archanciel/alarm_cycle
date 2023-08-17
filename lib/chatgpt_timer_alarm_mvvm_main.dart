@@ -364,8 +364,7 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
     TextEditingController nameController =
         TextEditingController(text: _alarm.name);
     TextEditingController timeController = TextEditingController(
-        text: DateTimeParser.HHmmDateTimeFormat.format(
-            _alarm.nextAlarmTime));
+        text: DateTimeParser.HHmmDateTimeFormat.format(_alarm.nextAlarmTime));
     TextEditingController durationController = TextEditingController(
         text:
             "${_alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(_alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
@@ -481,16 +480,9 @@ class AlarmPage extends StatefulWidget {
           child: Text(label),
         ),
         Expanded(
-          child: InkWell(
-            child: Text(
-              key: valueTextWidgetKey,
-              value,
-            ),
-            onTap: () {
-              Clipboard.setData(
-                ClipboardData(text: value),
-              );
-            },
+          child: Text(
+            key: valueTextWidgetKey,
+            value,
           ),
         ),
       ],
@@ -551,28 +543,33 @@ class _AlarmPageState extends State<AlarmPage> {
               ),
               child: ListTile(
                 title: Text(alarm.name),
-                subtitle: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start, // Aligns the text to the left
-                  children: [
-                    widget.createInfoRowFunction(
-                      context: context,
-                      label: 'Next alarm: ',
-                      value: DateTimeParser.frenchDateTimeFormat
-                          .format(alarm.nextAlarmTime),
-                    ),
-                    widget.createInfoRowFunction(
-                      context: context,
-                      label: 'Periodicity:',
-                      value:
-                          '${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}',
-                    ),
-                    widget.createInfoRowFunction(
-                      context: context,
-                      label: 'Audio file:',
-                      value: '${alarm.audioFilePathName.split('/').last}',
-                    ),
-                  ],
+                subtitle: InkWell(
+                  onTap: () {
+                    _showEditAlarmDialog(alarm);
+                  },
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start, // Aligns the text to the left
+                    children: [
+                      widget.createInfoRowFunction(
+                        context: context,
+                        label: 'Next alarm: ',
+                        value: DateTimeParser.frenchDateTimeFormat
+                            .format(alarm.nextAlarmTime),
+                      ),
+                      widget.createInfoRowFunction(
+                        context: context,
+                        label: 'Periodicity:',
+                        value:
+                            '${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}',
+                      ),
+                      widget.createInfoRowFunction(
+                        context: context,
+                        label: 'Audio file:',
+                        value: '${alarm.audioFilePathName.split('/').last}',
+                      ),
+                    ],
+                  ),
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),
