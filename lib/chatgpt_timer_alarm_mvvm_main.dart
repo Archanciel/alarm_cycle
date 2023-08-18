@@ -14,6 +14,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+const double kFontSize = 19;
+const double kLabelStyleFontSize = 25;
 
 void main() => runApp(
       ChangeNotifierProvider(
@@ -29,8 +31,8 @@ class DateTimeParser {
   static DateFormat frenchDateTimeFormat = DateFormat("dd-MM-yyyy HH:mm");
   static DateFormat HHmmDateTimeFormat = DateFormat("HH:mm");
 
-  /// Examples: 2021-01-01T10:35 --> 2021-01-01T11:00
-  ///           2021-01-01T10:25 --> 2021-01-01T10:00
+  /// Examples: kFontSize21-01-01T10:35 --> kFontSize21-01-01T11:00
+  ///           kFontSize21-01-01T10:25 --> kFontSize21-01-01T10:00
   static DateTime roundDateTimeToHour(DateTime dateTime) {
     if (dateTime.minute >= 30) {
       return DateTime(dateTime.year, dateTime.month, dateTime.day,
@@ -377,17 +379,39 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
           children: [
             TextFormField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                labelStyle: TextStyle(
+                  fontSize: kLabelStyleFontSize,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: kFontSize,
+              ),
             ),
             TextFormField(
               controller: timeController,
-              decoration:
-                  const InputDecoration(labelText: 'Next Alarm Time (hh:mm)'),
+              decoration: const InputDecoration(
+                labelText: 'Next Alarm Time (hh:mm)',
+                labelStyle: TextStyle(
+                  fontSize: kLabelStyleFontSize,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: kFontSize,
+              ),
             ),
             TextFormField(
               controller: durationController,
               decoration: const InputDecoration(
-                  labelText: 'Resilient Duration (hh:mm)'),
+                labelText: 'Periodic Duration (hh:mm)',
+                labelStyle: TextStyle(
+                  fontSize: kLabelStyleFontSize,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: kFontSize,
+              ),
             ),
             Consumer<AlarmVM>(
               builder: (context, viewModel, child) => DropdownButton<String>(
@@ -395,7 +419,10 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
                 items: AlarmVM.audioFileNames.map((String fileName) {
                   return DropdownMenuItem<String>(
                     value: fileName,
-                    child: Text(fileName),
+                    child: Text(
+                      fileName,
+                      style: const TextStyle(fontSize: kFontSize),
+                    ),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -476,12 +503,20 @@ class AlarmPage extends StatefulWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(label),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: kFontSize,
+            ),
+          ),
         ),
         Expanded(
           child: Text(
             key: valueTextWidgetKey,
             value,
+            style: const TextStyle(
+              fontSize: kFontSize,
+            ),
           ),
         ),
       ],
@@ -541,7 +576,12 @@ class _AlarmPageState extends State<AlarmPage> {
                 vertical: 15,
               ),
               child: ListTile(
-                title: Text(alarm.name),
+                title: Text(
+                  alarm.name,
+                  style: const TextStyle(
+                    fontSize: kFontSize,
+                  ),
+                ),
                 subtitle: InkWell(
                   onTap: () {
                     _showEditAlarmDialog(alarm);
@@ -588,8 +628,7 @@ class _AlarmPageState extends State<AlarmPage> {
           Alarm? newAlarm = await _showAddAlarmDialog(context);
           if (newAlarm != null) {
             // Assuming you have a method in your ViewModel to add alarms
-            Provider.of<AlarmVM>(context, listen: false)
-                .addAlarm(newAlarm);
+            Provider.of<AlarmVM>(context, listen: false).addAlarm(newAlarm);
           }
         },
       ),
@@ -604,8 +643,7 @@ class _AlarmPageState extends State<AlarmPage> {
     TextEditingController durationController = TextEditingController();
 
     // Set the default value of the dropdown button menu
-    AlarmVM alarmVM =
-        Provider.of<AlarmVM>(context, listen: false);
+    AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
     alarmVM.selectedAudioFile = AlarmVM.audioFileNames[0];
 
     return showDialog<Alarm>(
@@ -696,8 +734,7 @@ class _AlarmPageState extends State<AlarmPage> {
             "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
 
     // Set the value of the dropdown button menu
-    AlarmVM alarmVM =
-        Provider.of<AlarmVM>(context, listen: false);
+    AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
     alarmVM.selectedAudioFile = alarm.audioFilePathName.split('/').last;
 
     showDialog(
@@ -711,17 +748,30 @@ class _AlarmPageState extends State<AlarmPage> {
               children: [
                 TextFormField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    labelStyle: TextStyle(
+                      fontSize: kLabelStyleFontSize,
+                    ),
+                  ),
                 ),
                 TextFormField(
                   controller: timeController,
                   decoration: const InputDecoration(
-                      labelText: 'Next Alarm Time (hh:mm)'),
+                    labelText: 'Next Alarm Time (hh:mm)',
+                    labelStyle: TextStyle(
+                      fontSize: kLabelStyleFontSize,
+                    ),
+                  ),
                 ),
                 TextFormField(
                   controller: durationController,
                   decoration: const InputDecoration(
-                      labelText: 'Resilient Duration (hh:mm)'),
+                    labelText: 'Periodic Duration (hh:mm)',
+                    labelStyle: TextStyle(
+                      fontSize: kLabelStyleFontSize,
+                    ),
+                  ),
                 ),
                 Consumer<AlarmVM>(
                   builder: (context, viewModel, child) =>
@@ -730,7 +780,10 @@ class _AlarmPageState extends State<AlarmPage> {
                     items: AlarmVM.audioFileNames.map((String fileName) {
                       return DropdownMenuItem<String>(
                         value: fileName,
-                        child: Text(fileName),
+                        child: Text(
+                          fileName,
+                          style: const TextStyle(fontSize: kFontSize),
+                        ),
                       );
                     }).toList(),
                     onChanged: (newValue) {
