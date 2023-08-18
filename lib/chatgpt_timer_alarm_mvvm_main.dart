@@ -51,6 +51,126 @@ class DateTimeParser {
     return DateTimeParser.englishDateTimeFormat
         .parse(DateTimeParser.englishDateTimeFormat.format(dateTime));
   }
+
+  /// Method used to format the entered string duration
+  /// to the duration TextField format, either HH:mm or
+  /// dd:HH:mm. The method enables entering an int
+  /// duration value instead of an HH:mm duration. For
+  /// example, 2 or 24 instead of 02:00 or 24:00.
+  ///
+  /// If the removeMinusSign parm is false, entering -2
+  /// converts the duration string to -2:00, which is
+  /// useful in the Add dialog accepting adding a positive
+  /// or negative duration.
+  ///
+  /// If dayHourMinuteFormat is true, the returned string
+  /// duration for 2 is 00:02:00 or for 3:24 00:03:24.
+  ///
+  /// This method has been extracted from utils/utility.dart
+  /// in circa_plan project in which the method is unit
+  /// tested.
+  static String formatStringDuration({
+    required String durationStr,
+    bool removeMinusSign = true,
+    bool dayHourMinuteFormat = false,
+  }) {
+    if (removeMinusSign) {
+      durationStr = durationStr.replaceAll(RegExp(r'[+\-]+'), '');
+    } else {
+      durationStr = durationStr.replaceAll(RegExp(r'[+]+'), '');
+    }
+
+    if (dayHourMinuteFormat) {
+      // the case if used on TimeCalculator screen
+      int? durationInt = int.tryParse(durationStr);
+
+      if (durationInt != null) {
+        if (durationInt < 0) {
+          if (durationInt > -10) {
+            durationStr = '-00:0${durationInt * -1}:00';
+          } else {
+            durationStr = '-00:${durationInt * -1}:00';
+          }
+        } else {
+          if (durationInt < 10) {
+            durationStr = '00:0$durationStr:00';
+          } else {
+            durationStr = '00:$durationStr:00';
+          }
+        }
+      } else {
+        RegExp re = RegExp(r"^\d+:\d{1}$");
+        RegExpMatch? match = re.firstMatch(durationStr);
+        if (match != null) {
+          durationStr = '${match.group(0)}0';
+        } else {
+          if (!removeMinusSign) {
+            RegExp re = RegExp(r"^-\d+:\d{1}$");
+            RegExpMatch? match = re.firstMatch(durationStr);
+            if (match != null) {
+              durationStr = '${match.group(0)}0';
+            }
+          }
+        }
+      }
+
+      RegExp re = RegExp(r"^\d{1}:\d+$");
+      RegExpMatch? match = re.firstMatch(durationStr);
+
+      if (match != null) {
+        durationStr = '00:0${match.group(0)}';
+      } else {
+        RegExp re = RegExp(r"^\d{2}:\d+$");
+        RegExpMatch? match = re.firstMatch(durationStr);
+        if (match != null) {
+          durationStr = '00:${match.group(0)}';
+        } else {
+          RegExp re = RegExp(r"^\d{1}:\d{2}:\d+$");
+          RegExpMatch? match = re.firstMatch(durationStr);
+          if (match != null) {
+            durationStr = '0${match.group(0)}';
+          } else {
+            RegExp re = RegExp(r"^\d{2}:\d{2}:\d+$");
+            RegExpMatch? match = re.firstMatch(durationStr);
+            if (match != null) {
+              durationStr = '${match.group(0)}';
+            }
+          }
+        }
+      }
+    } else {
+      int? durationInt = int.tryParse(durationStr);
+
+      if (durationInt != null) {
+        // the case if a one or two digits duration was entered ...
+        durationStr = '$durationStr:00';
+      } else {
+        RegExp re = RegExp(r"^\d+:\d{1}$");
+        RegExpMatch? match = re.firstMatch(durationStr);
+        if (match != null) {
+          durationStr = '${match.group(0)}0';
+        } else {
+          if (!removeMinusSign) {
+            RegExp re = RegExp(r"^-\d+:\d{1}$");
+            RegExpMatch? match = re.firstMatch(durationStr);
+            if (match != null) {
+              durationStr = '${match.group(0)}0';
+            }
+          } else {
+            // the case when copying a 00:hh:mm time text field content to a
+            // duration text field.
+            RegExp re = RegExp(r"^00:\d{2}:\d{2}$");
+            RegExpMatch? match = re.firstMatch(durationStr);
+            if (match != null) {
+              durationStr = match.group(0)!.replaceFirst('00:', '');
+            }
+          }
+        }
+      }
+    }
+
+    return durationStr;
+  }
 }
 
 class Alarm {
@@ -452,9 +572,17 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
                         DateTime.now().day,
                         int.parse(timeController.text.split(':')[0]),
                         int.parse(timeController.text.split(':')[1]));
+
+                    // enabling the user to enter a periodicity in a
+                    // simplified format (e.g. 1:30 for 01:30 or 5 for
+                    // 05:00.
+                    final String formattedHhMmPeriodicityStr =
+                        DateTimeParser.formatStringDuration(
+                      durationStr: durationController.text,
+                    );
                     _alarm.periodicDuration = Duration(
-                      hours: int.parse(durationController.text.split(':')[0]),
-                      minutes: int.parse(durationController.text.split(':')[1]),
+                      hours: int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
+                      minutes: int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
                     );
 
                     AlarmVM alarmVM =
@@ -656,17 +784,39 @@ class _AlarmPageState extends State<AlarmPage> {
               children: <Widget>[
                 TextFormField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    labelStyle: TextStyle(
+                      fontSize: kLabelStyleFontSize,
+                    ),
+                  ),
+                  style: const TextStyle(
+                    fontSize: kFontSize,
+                  ),
                 ),
                 TextFormField(
                   controller: timeController,
                   decoration: const InputDecoration(
-                      labelText: 'Next Alarm Time (hh:mm)'),
+                    labelText: 'Next Alarm Time (hh:mm)',
+                    labelStyle: TextStyle(
+                      fontSize: kLabelStyleFontSize,
+                    ),
+                  ),
+                  style: const TextStyle(
+                    fontSize: kFontSize,
+                  ),
                 ),
                 TextFormField(
                   controller: durationController,
-                  decoration:
-                      const InputDecoration(labelText: 'Periodicity (hh:mm)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Periodicity (hh:mm)',
+                    labelStyle: TextStyle(
+                      fontSize: kLabelStyleFontSize,
+                    ),
+                  ),
+                  style: const TextStyle(
+                    fontSize: kFontSize,
+                  ),
                 ),
                 Consumer<AlarmVM>(
                   builder: (context, viewModel, child) =>
@@ -675,7 +825,12 @@ class _AlarmPageState extends State<AlarmPage> {
                     items: AlarmVM.audioFileNames.map((String fileName) {
                       return DropdownMenuItem<String>(
                         value: fileName,
-                        child: Text(fileName),
+                        child: Text(
+                          fileName,
+                          style: const TextStyle(
+                            fontSize: kFontSize,
+                          ),
+                        ),
                       );
                     }).toList(),
                     onChanged: (newValue) {
@@ -706,9 +861,17 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTime.now().day,
                     int.parse(timeController.text.split(':')[0]),
                     int.parse(timeController.text.split(':')[1]));
+
+                // enabling the user to enter a periodicity in a
+                // simplified format (e.g. 1:30 for 01:30 or 5 for
+                // 05:00.
+                final String formattedHhMmPeriodicityStr =
+                    DateTimeParser.formatStringDuration(
+                  durationStr: durationController.text,
+                );
                 final periodicDuration = Duration(
-                  hours: int.parse(durationController.text.split(':')[0]),
-                  minutes: int.parse(durationController.text.split(':')[1]),
+                  hours: int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
+                  minutes: int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
                 );
 
                 Navigator.of(context).pop(Alarm(
@@ -767,7 +930,7 @@ class _AlarmPageState extends State<AlarmPage> {
                 TextFormField(
                   controller: durationController,
                   decoration: const InputDecoration(
-                    labelText: 'Periodic Duration (hh:mm)',
+                    labelText: 'Periodicity (hh:mm)',
                     labelStyle: TextStyle(
                       fontSize: kLabelStyleFontSize,
                     ),
@@ -782,7 +945,9 @@ class _AlarmPageState extends State<AlarmPage> {
                         value: fileName,
                         child: Text(
                           fileName,
-                          style: const TextStyle(fontSize: kFontSize),
+                          style: const TextStyle(
+                            fontSize: kFontSize,
+                          ),
                         ),
                       );
                     }).toList(),
@@ -814,9 +979,18 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTime.now().day,
                     int.parse(timeController.text.split(':')[0]),
                     int.parse(timeController.text.split(':')[1]));
+
+                // enabling the user to enter a periodicity in a
+                // simplified format (e.g. 1:30 for 01:30 or 5 for
+                // 05:00.
+                final String formattedHhMmPeriodicityStr =
+                    DateTimeParser.formatStringDuration(
+                  durationStr: durationController.text,
+                );
+
                 alarm.periodicDuration = Duration(
-                  hours: int.parse(durationController.text.split(':')[0]),
-                  minutes: int.parse(durationController.text.split(':')[1]),
+                  hours: int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
+                  minutes: int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
                 );
                 alarm.audioFilePathName = alarmVM.selectedAudioFile;
                 alarmVM.editAlarm(alarm);
