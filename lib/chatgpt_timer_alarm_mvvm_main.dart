@@ -175,7 +175,13 @@ class DateTimeParser {
 
 class Alarm {
   String name;
+
+  // last time the alarm was triggered
+  DateTime? lastAlarmTime;
+
+  // next time the alarm will be triggered
   DateTime nextAlarmTime;
+
   Duration periodicDuration;
   String audioFilePathName;
 
@@ -198,6 +204,7 @@ class Alarm {
 
   Alarm({
     required this.name,
+    this.lastAlarmTime,
     required this.nextAlarmTime,
     required this.periodicDuration,
     required this.audioFilePathName,
@@ -206,6 +213,7 @@ class Alarm {
   // Convertir un Alarme à partir de et vers un objet Map (pour la sérialisation JSON)
   Map<String, dynamic> toJson() => {
         'name': name,
+        'lastAlarmTime': lastAlarmTime?.toIso8601String(),
         'nextAlarmTime': nextAlarmTime.toIso8601String(),
         'periodicDurationSeconds': periodicDuration.inSeconds,
         'audioFilePathName': audioFilePathName,
@@ -213,6 +221,9 @@ class Alarm {
 
   factory Alarm.fromJson(Map<String, dynamic> json) => Alarm(
         name: json['name'],
+        lastAlarmTime: json['lastAlarmTime'] != null
+            ? DateTime.parse(json['lastAlarmTime'])
+            : null,
         nextAlarmTime: DateTime.parse(json['nextAlarmTime']),
         periodicDuration: Duration(seconds: json['periodicDurationSeconds']),
         audioFilePathName: json['audioFilePathName'],
@@ -298,7 +309,8 @@ class AlarmVM with ChangeNotifier {
     _loadAlarms();
     _initializeNotifications();
 
-    timer = Timer.periodic(const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
+    timer = Timer.periodic(
+        const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
   }
 
   Future<void> _loadAlarms() async {
@@ -351,6 +363,7 @@ class AlarmVM with ChangeNotifier {
         // Update the nextAlarmTime
         // alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
         //     .add(alarm.periodicDuration);
+        alarm.lastAlarmTime = alarm.nextAlarmTime;
         alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.periodicDuration);
         wasAlarnModified = true;
       }
@@ -723,6 +736,14 @@ class _AlarmPageState extends State<AlarmPage> {
                     crossAxisAlignment:
                         CrossAxisAlignment.start, // Aligns the text to the left
                     children: [
+                      widget.createInfoRowFunction(
+                        context: context,
+                        label: 'Last alarm: ',
+                        value: (alarm.lastAlarmTime == null)
+                            ? ''
+                            : DateTimeParser.frenchDateTimeFormat
+                                .format(alarm.lastAlarmTime!),
+                      ),
                       widget.createInfoRowFunction(
                         context: context,
                         label: 'Next alarm: ',
