@@ -292,11 +292,13 @@ class AlarmVM with ChangeNotifier {
     notifyListeners();
   }
 
+  static const int alarmCheckingMinutes = 3;
+
   AlarmVM() {
     _loadAlarms();
     _initializeNotifications();
 
-    timer = Timer.periodic(const Duration(minutes: 1), checkAlarmsPeriodically);
+    timer = Timer.periodic(const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
   }
 
   Future<void> _loadAlarms() async {
@@ -347,8 +349,9 @@ class AlarmVM with ChangeNotifier {
         await audioPlayerVM.playFromAssets(alarm);
 
         // Update the nextAlarmTime
-        alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
-            .add(alarm.periodicDuration);
+        // alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
+        //     .add(alarm.periodicDuration);
+        alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.periodicDuration);
         wasAlarnModified = true;
       }
     }
@@ -581,8 +584,10 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
                       durationStr: durationController.text,
                     );
                     _alarm.periodicDuration = Duration(
-                      hours: int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
-                      minutes: int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
+                      hours:
+                          int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
+                      minutes:
+                          int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
                     );
 
                     AlarmVM alarmVM =
