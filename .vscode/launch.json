@@ -21,6 +21,7 @@
       "type": "dart",
       "flutterMode": "release",
       "program": "lib/chatgpt_timer_alarm_mvvm_main.dart"
+      // "program": "lib/chatgpt_backgr_fetch_local_notif.dart"
     }
   ]
 }

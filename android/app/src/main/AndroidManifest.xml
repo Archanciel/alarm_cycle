@@ -38,4 +38,8 @@
 
     <!-- Enabling notifications -->    
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Required for using background_fetch -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 </manifest>

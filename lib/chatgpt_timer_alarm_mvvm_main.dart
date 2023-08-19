@@ -469,7 +469,7 @@ class AlarmVM with ChangeNotifier {
 class SimpleEditAlarmScreen extends StatefulWidget {
   final Alarm alarm;
 
-  const SimpleEditAlarmScreen({required this.alarm});
+  const SimpleEditAlarmScreen({super.key, required this.alarm});
 
   @override
   _SimpleEditAlarmScreenState createState() => _SimpleEditAlarmScreenState(
@@ -673,8 +673,9 @@ class AlarmPage extends StatefulWidget {
 class _AlarmPageState extends State<AlarmPage> {
   @override
   void initState() {
-    requestMultiplePermissions();
     super.initState();
+
+    requestMultiplePermissions();
   }
 
   void requestMultiplePermissions() async {
@@ -759,7 +760,7 @@ class _AlarmPageState extends State<AlarmPage> {
                       widget.createInfoRowFunction(
                         context: context,
                         label: 'Audio file:',
-                        value: '${alarm.audioFilePathName.split('/').last}',
+                        value: alarm.audioFilePathName.split('/').last,
                       ),
                     ],
                   ),
