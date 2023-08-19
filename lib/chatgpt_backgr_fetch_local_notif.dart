@@ -13,7 +13,7 @@ void main() {
   BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 }
 
-void backgroundFetchHeadlessTask(HeadlessTask task) async {
+void backgroundFetchHeadlessTask(String taskId) async {
   AudioPlayer audioPlayer = AudioPlayer();
 
   await audioPlayer.play(AssetSource('audio/Sirdalud.mp3'));
@@ -21,7 +21,7 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
   showNotification();
 
   // Important: end the task here, or the OS could be kill the app
-  BackgroundFetch.finish(task.taskId);
+  BackgroundFetch.finish(taskId);
 }
 
 Future<void> showNotification() async {
@@ -36,7 +36,7 @@ Future<void> showNotification() async {
     playSound: false, // We will play our own sound using audio player
     ongoing: true,
   );
-  var platformChannelSpecifics = NotificationDetails(
+  NotificationDetails platformChannelSpecifics = NotificationDetails(
     android: androidPlatformChannelSpecifics,
   );
   await flutterLocalNotificationsPlugin.show(
@@ -104,10 +104,7 @@ class _MyAppState extends State<MyApp> {
           minimumFetchInterval: 15,
           stopOnTerminate: false,
           enableHeadless: true,
-        ), (String taskId) async {
-      showNotification();
-      BackgroundFetch.finish(taskId);
-    });
+        ), backgroundFetchHeadlessTask);
     BackgroundFetch.start();
   }
 
