@@ -648,7 +648,8 @@ class AlarmPage extends StatefulWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.3,
           child: Text(
             label,
             style: const TextStyle(
