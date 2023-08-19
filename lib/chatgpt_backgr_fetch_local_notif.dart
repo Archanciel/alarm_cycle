@@ -101,7 +101,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> initPlatformState() async {
     BackgroundFetch.configure(
         BackgroundFetchConfig(
-          minimumFetchInterval: 1,
+          minimumFetchInterval: 15,
           stopOnTerminate: false,
           enableHeadless: true,
         ), (String taskId) async {
