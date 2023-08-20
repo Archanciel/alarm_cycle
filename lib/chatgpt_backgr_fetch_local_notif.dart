@@ -1,4 +1,3 @@
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:background_fetch/background_fetch.dart';
@@ -79,7 +78,6 @@ class _MyAppState extends State<MyApp> {
       Permission.ignoreBatteryOptimizations,
     ].request();
 
-
     // Vous pouvez maintenant vérifier l'état de chaque permission
     if (!statuses[Permission.storage]!.isGranted ||
         !statuses[Permission.manageExternalStorage]!.isGranted ||
@@ -104,17 +102,20 @@ class _MyAppState extends State<MyApp> {
           minimumFetchInterval: 15,
           stopOnTerminate: false,
           enableHeadless: true,
-        ), backgroundFetchHeadlessTask);
+        ),
+        backgroundFetchHeadlessTask);
     BackgroundFetch.start();
   }
 
   Future<void> initNotification() async {
-    var initializationSettingsAndroid =
+    AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/ic_launcher');
-    var initializationSettings = InitializationSettings(
+    InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
     );
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+    );
   }
 
   @override
