@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,12 +18,15 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 const double kFontSize = 19;
 const double kLabelStyleFontSize = 25;
 
-void main() => runApp(
+void main() {
+  runApp(
       ChangeNotifierProvider(
         create: (context) => AlarmVM(),
         child: const MyApp(),
-      ),
-    );
+      ));
+
+  BackgroundFetch.registerHeadlessTask(AlarmVM().checkAlarmsPeriodically);
+}
 
 class DateTimeParser {
   static DateFormat englishDateTimeFormat = DateFormat("yyyy-MM-dd HH:mm");
@@ -183,6 +187,8 @@ class Alarm {
   DateTime nextAlarmTime;
 
   Duration periodicDuration;
+
+  // for example, 'audio/alarm.mp3'
   String audioFilePathName;
 
   // State of the alarm audio
@@ -282,7 +288,6 @@ class AudioPlayerVM extends ChangeNotifier {
 
 class AlarmVM with ChangeNotifier {
   List<Alarm> alarms = [];
-  late Timer timer;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -305,13 +310,24 @@ class AlarmVM with ChangeNotifier {
 
   static const int alarmCheckingMinutes = 3;
 
-  AlarmVM() {
+  static final AlarmVM _singleton = AlarmVM._internal();
+
+  factory AlarmVM() {
+    return _singleton;
+  }
+
+  AlarmVM._internal() {
     _loadAlarms();
     _initializeNotifications();
-
-    timer = Timer.periodic(
-        const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
   }
+
+  // AlarmVM() {
+  //   _loadAlarms();
+  //   _initializeNotifications();
+
+  //   timer = Timer.periodic(
+  //       const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
+  // }
 
   Future<void> _loadAlarms() async {
     // Chargez les alarmes à partir du fichier JSON
@@ -350,7 +366,11 @@ class AlarmVM with ChangeNotifier {
   /// Method called by Timer.periodic to check if an alarm should be
   /// triggered. If an alarm is triggered, its nextAlarmTime is updated
   /// and the updated alarm is saved to the JSON file.
-  Future<void> checkAlarmsPeriodically(Timer t) async {
+  ///
+  /// Method called by BackgroundFetch every 15 minutes to check if an
+  /// alarm should be triggered. If an alarm is triggered, its
+  /// nextAlarmTime is updated
+  Future<void> checkAlarmsPeriodically(String taskId) async {
     bool wasAlarnModified = false;
 
     DateTime now = DateTime.now();
@@ -374,6 +394,9 @@ class AlarmVM with ChangeNotifier {
 
       notifyListeners();
     }
+
+    // Important: end the task here, or the OS could be kill the app
+    BackgroundFetch.finish(taskId);
   }
 
   void addAlarm(Alarm alarm) {
@@ -453,8 +476,9 @@ class AlarmVM with ChangeNotifier {
       ongoing: true,
     );
 
-    NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
 
     await flutterLocalNotificationsPlugin.show(
       0, // ID
@@ -621,7 +645,9 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -634,10 +660,13 @@ class MyApp extends StatelessWidget {
 }
 
 class AlarmPage extends StatefulWidget {
-  const AlarmPage({super.key});
+  const AlarmPage({
+    super.key,
+  });
 
   @override
-  _AlarmPageState createState() => _AlarmPageState();
+  _AlarmPageState createState() => _AlarmPageState(
+      );
 
   Widget createInfoRowFunction({
     Key? valueTextWidgetKey, // key set to the Text widget displaying the value
@@ -676,10 +705,12 @@ class _AlarmPageState extends State<AlarmPage> {
   void initState() {
     super.initState();
 
-    requestMultiplePermissions();
+    _requestMultiplePermissions();
+
+    _initPlatformState();
   }
 
-  void requestMultiplePermissions() async {
+  void _requestMultiplePermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.storage,
       Permission
@@ -708,6 +739,18 @@ class _AlarmPageState extends State<AlarmPage> {
       // Toutes les permissions ont été accordées, vous pouvez continuer avec
       // vos fonctionnalités.
     }
+  }
+
+  Future<void> _initPlatformState() async {
+    BackgroundFetch.configure(
+        BackgroundFetchConfig(
+          minimumFetchInterval: 15,
+          stopOnTerminate: false,
+          enableHeadless: true,
+        ),
+        AlarmVM().checkAlarmsPeriodically);
+
+    BackgroundFetch.start();
   }
 
   @override
