@@ -206,8 +206,11 @@ class DateTimeParser {
 class Alarm {
   String name;
 
-  // last time the alarm was triggered
-  DateTime? lastAlarmTime;
+  // last time the alarm should have been triggered
+  DateTime? lastAlarmTimePurpose;
+
+  // last time the alarm has been triggered
+  DateTime? lastAlarmTimeReal;
 
   // next time the alarm will be triggered
   DateTime nextAlarmTime;
@@ -236,7 +239,8 @@ class Alarm {
 
   Alarm({
     required this.name,
-    this.lastAlarmTime,
+    this.lastAlarmTimePurpose,
+    this.lastAlarmTimeReal,
     required this.nextAlarmTime,
     required this.periodicDuration,
     required this.audioFilePathName,
@@ -245,7 +249,8 @@ class Alarm {
   // Convertir un Alarme à partir de et vers un objet Map (pour la sérialisation JSON)
   Map<String, dynamic> toJson() => {
         'name': name,
-        'lastAlarmTime': lastAlarmTime?.toIso8601String(),
+        'lastAlarmTimePurpose': lastAlarmTimePurpose?.toIso8601String(),
+        'lastAlarmTimeReal': lastAlarmTimeReal?.toIso8601String(),
         'nextAlarmTime': nextAlarmTime.toIso8601String(),
         'periodicDurationSeconds': periodicDuration.inSeconds,
         'audioFilePathName': audioFilePathName,
@@ -253,8 +258,11 @@ class Alarm {
 
   factory Alarm.fromJson(Map<String, dynamic> json) => Alarm(
         name: json['name'],
-        lastAlarmTime: json['lastAlarmTime'] != null
-            ? DateTime.parse(json['lastAlarmTime'])
+        lastAlarmTimePurpose: json['lastAlarmTimePurpose'] != null
+            ? DateTime.parse(json['lastAlarmTimePurpose'])
+            : null,
+        lastAlarmTimeReal: json['lastAlarmTimeReal'] != null
+            ? DateTime.parse(json['lastAlarmTimeReal'])
             : null,
         nextAlarmTime: DateTime.parse(json['nextAlarmTime']),
         periodicDuration: Duration(seconds: json['periodicDurationSeconds']),
@@ -409,7 +417,8 @@ class AlarmVM with ChangeNotifier {
         // Update the nextAlarmTime
         // alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
         //     .add(alarm.periodicDuration);
-        alarm.lastAlarmTime = alarm.nextAlarmTime;
+        alarm.lastAlarmTimePurpose = alarm.nextAlarmTime;
+        alarm.lastAlarmTimeReal = now;
         alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.periodicDuration);
         wasAlarnModified = true;
       }
@@ -831,10 +840,18 @@ class _AlarmPageState extends State<AlarmPage> {
                       widget.createInfoRowFunction(
                         context: context,
                         label: 'Last alarm: ',
-                        value: (alarm.lastAlarmTime == null)
+                        value: (alarm.lastAlarmTimePurpose == null)
                             ? ''
                             : DateTimeParser.frenchDateTimeFormat
-                                .format(alarm.lastAlarmTime!),
+                                .format(alarm.lastAlarmTimePurpose!),
+                      ),
+                      widget.createInfoRowFunction(
+                        context: context,
+                        label: 'Real alarm: ',
+                        value: (alarm.lastAlarmTimeReal == null)
+                            ? ''
+                            : DateTimeParser.frenchDateTimeFormat
+                                .format(alarm.lastAlarmTimeReal!),
                       ),
                       widget.createInfoRowFunction(
                         context: context,
