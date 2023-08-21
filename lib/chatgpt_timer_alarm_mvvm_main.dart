@@ -174,6 +174,33 @@ class DateTimeParser {
 
     return durationStr;
   }
+
+  /// If the input HH:mm time string is before now, the method
+  /// returns a DateTime object with the same time but tomorrow.
+  static DateTime computeNextAlarmDateTime({
+    required String formattedHhMmNextAlarmTimeStr,
+  }) {
+    int nowMinutes = DateTime.now().hour * 60 + DateTime.now().minute;
+    int nextAlarmMinutes =
+        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]) * 60 +
+            int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]);
+
+    if (nextAlarmMinutes <= nowMinutes) {
+      return DateTime(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day + 1,
+          int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
+          int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+    }
+
+    return DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
+        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+  }
 }
 
 class Alarm {
@@ -557,12 +584,10 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
                 DateTimeParser.formatStringDuration(
               durationStr: timeController.text,
             );
-            _alarm.nextAlarmTime = DateTime(
-                DateTime.now().year,
-                DateTime.now().month,
-                DateTime.now().day,
-                int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
-                int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+
+            _alarm.nextAlarmTime = DateTimeParser.computeNextAlarmDateTime(
+              formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
+            );
 
             // enabling the user to enter a periodicity in a
             // simplified format (e.g. 1:30 for 01:30 or 5 for
@@ -903,12 +928,9 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTimeParser.formatStringDuration(
                   durationStr: timeController.text,
                 );
-                final nextAlarmTime = DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
-                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+                final nextAlarmTime = DateTimeParser.computeNextAlarmDateTime(
+                  formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
+                );
 
                 // enabling the user to enter a periodicity in a
                 // simplified format (e.g. 1:3 for 01:30 or 5 for
@@ -985,12 +1007,10 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTimeParser.formatStringDuration(
                   durationStr: timeController.text,
                 );
-                alarm.nextAlarmTime = DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
-                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+
+                alarm.nextAlarmTime = DateTimeParser.computeNextAlarmDateTime(
+                  formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
+                );
 
                 // enabling the user to enter a periodicity in a
                 // simplified format (e.g. 1:3 for 01:30 or 5 for
