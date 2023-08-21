@@ -19,11 +19,10 @@ const double kFontSize = 19;
 const double kLabelStyleFontSize = 25;
 
 void main() {
-  runApp(
-      ChangeNotifierProvider(
-        create: (context) => AlarmVM(),
-        child: const MyApp(),
-      ));
+  runApp(ChangeNotifierProvider(
+    create: (context) => AlarmVM(),
+    child: const MyApp(),
+  ));
 
   BackgroundFetch.registerHeadlessTask(AlarmVM().checkAlarmsPeriodically);
 }
@@ -606,12 +605,20 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
                   onPressed: () {
                     // Update the current alarm's details
                     _alarm.name = nameController.text;
+
+                    // enabling the user to enter a next alarm time in a
+                    // simplified format (e.g. 9:3 for 09:30 or 15 for
+                    // 15:00.
+                    final String formattedHhMmNextAlarmTimeStr =
+                        DateTimeParser.formatStringDuration(
+                      durationStr: timeController.text,
+                    );
                     _alarm.nextAlarmTime = DateTime(
                         DateTime.now().year,
                         DateTime.now().month,
                         DateTime.now().day,
-                        int.parse(timeController.text.split(':')[0]),
-                        int.parse(timeController.text.split(':')[1]));
+                        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
+                        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
 
                     // enabling the user to enter a periodicity in a
                     // simplified format (e.g. 1:30 for 01:30 or 5 for
@@ -665,8 +672,7 @@ class AlarmPage extends StatefulWidget {
   });
 
   @override
-  _AlarmPageState createState() => _AlarmPageState(
-      );
+  _AlarmPageState createState() => _AlarmPageState();
 
   Widget createInfoRowFunction({
     Key? valueTextWidgetKey, // key set to the Text widget displaying the value
@@ -926,15 +932,23 @@ class _AlarmPageState extends State<AlarmPage> {
               onPressed: () {
                 // Process the input values and create a new Alarm instance
                 final name = nameController.text;
+
+                // enabling the user to enter a next alarm time in a
+                // simplified format (e.g. 9:3 for 09:30 or 15 for
+                // 15:00.
+                final String formattedHhMmNextAlarmTimeStr =
+                    DateTimeParser.formatStringDuration(
+                  durationStr: timeController.text,
+                );
                 final nextAlarmTime = DateTime(
                     DateTime.now().year,
                     DateTime.now().month,
                     DateTime.now().day,
-                    int.parse(timeController.text.split(':')[0]),
-                    int.parse(timeController.text.split(':')[1]));
+                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
+                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
 
                 // enabling the user to enter a periodicity in a
-                // simplified format (e.g. 1:30 for 01:30 or 5 for
+                // simplified format (e.g. 1:3 for 01:30 or 5 for
                 // 05:00.
                 final String formattedHhMmPeriodicityStr =
                     DateTimeParser.formatStringDuration(
@@ -1044,15 +1058,23 @@ class _AlarmPageState extends State<AlarmPage> {
               onPressed: () {
                 // Update the current alarm's details
                 alarm.name = nameController.text;
+
+                // enabling the user to enter a next alarm time in a
+                // simplified format (e.g. 9:3 for 09:30 or 15 for
+                // 15:00.
+                final String formattedHhMmNextAlarmTimeStr =
+                    DateTimeParser.formatStringDuration(
+                  durationStr: timeController.text,
+                );
                 alarm.nextAlarmTime = DateTime(
                     DateTime.now().year,
                     DateTime.now().month,
                     DateTime.now().day,
-                    int.parse(timeController.text.split(':')[0]),
-                    int.parse(timeController.text.split(':')[1]));
+                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
+                    int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
 
                 // enabling the user to enter a periodicity in a
-                // simplified format (e.g. 1:30 for 01:30 or 5 for
+                // simplified format (e.g. 1:3 for 01:30 or 5 for
                 // 05:00.
                 final String formattedHhMmPeriodicityStr =
                     DateTimeParser.formatStringDuration(
