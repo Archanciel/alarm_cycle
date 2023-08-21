@@ -528,6 +528,64 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
     TextEditingController durationController = TextEditingController(
         text:
             "${_alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(_alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
+
+    List<Widget> alarmEditionWidgetLst = createAlarmEditionWidgetLst(
+      nameController: nameController,
+      timeController: timeController,
+      durationController: durationController,
+    );
+
+    alarmEditionWidgetLst.add(Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          child: const Text('Cancel'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: const Text('Save Changes'),
+          onPressed: () {
+            // Update the current alarm's details
+            _alarm.name = nameController.text;
+
+            // enabling the user to enter a next alarm time in a
+            // simplified format (e.g. 9:3 for 09:30 or 15 for
+            // 15:00.
+            final String formattedHhMmNextAlarmTimeStr =
+                DateTimeParser.formatStringDuration(
+              durationStr: timeController.text,
+            );
+            _alarm.nextAlarmTime = DateTime(
+                DateTime.now().year,
+                DateTime.now().month,
+                DateTime.now().day,
+                int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
+                int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+
+            // enabling the user to enter a periodicity in a
+            // simplified format (e.g. 1:30 for 01:30 or 5 for
+            // 05:00.
+            final String formattedHhMmPeriodicityStr =
+                DateTimeParser.formatStringDuration(
+              durationStr: durationController.text,
+            );
+            _alarm.periodicDuration = Duration(
+              hours: int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
+              minutes: int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
+            );
+
+            AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
+            _alarm.audioFilePathName = alarmVM.selectedAudioFile;
+            alarmVM.editAlarm(_alarm);
+
+            Navigator.of(context).pop(); // Close the dialog
+          },
+        ),
+      ],
+    ));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Edit Alarm"),
@@ -536,120 +594,77 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                labelStyle: TextStyle(
-                  fontSize: kLabelStyleFontSize,
-                ),
-              ),
-              style: const TextStyle(
-                fontSize: kFontSize,
-              ),
-            ),
-            TextFormField(
-              controller: timeController,
-              decoration: const InputDecoration(
-                labelText: 'Next Alarm Time (hh:mm)',
-                labelStyle: TextStyle(
-                  fontSize: kLabelStyleFontSize,
-                ),
-              ),
-              style: const TextStyle(
-                fontSize: kFontSize,
-              ),
-            ),
-            TextFormField(
-              controller: durationController,
-              decoration: const InputDecoration(
-                labelText: 'Periodicity (hh:mm)',
-                labelStyle: TextStyle(
-                  fontSize: kLabelStyleFontSize,
-                ),
-              ),
-              style: const TextStyle(
-                fontSize: kFontSize,
-              ),
-            ),
-            Consumer<AlarmVM>(
-              builder: (context, viewModel, child) => DropdownButton<String>(
-                value: viewModel.selectedAudioFile,
-                items: AlarmVM.audioFileNames.map((String fileName) {
-                  return DropdownMenuItem<String>(
-                    value: fileName,
-                    child: Text(
-                      fileName,
-                      style: const TextStyle(fontSize: kFontSize),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  if (newValue != null) {
-                    viewModel.selectedAudioFile = newValue;
-                  }
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text('Save Changes'),
-                  onPressed: () {
-                    // Update the current alarm's details
-                    _alarm.name = nameController.text;
-
-                    // enabling the user to enter a next alarm time in a
-                    // simplified format (e.g. 9:3 for 09:30 or 15 for
-                    // 15:00.
-                    final String formattedHhMmNextAlarmTimeStr =
-                        DateTimeParser.formatStringDuration(
-                      durationStr: timeController.text,
-                    );
-                    _alarm.nextAlarmTime = DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month,
-                        DateTime.now().day,
-                        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
-                        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
-
-                    // enabling the user to enter a periodicity in a
-                    // simplified format (e.g. 1:30 for 01:30 or 5 for
-                    // 05:00.
-                    final String formattedHhMmPeriodicityStr =
-                        DateTimeParser.formatStringDuration(
-                      durationStr: durationController.text,
-                    );
-                    _alarm.periodicDuration = Duration(
-                      hours:
-                          int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
-                      minutes:
-                          int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
-                    );
-
-                    AlarmVM alarmVM =
-                        Provider.of<AlarmVM>(context, listen: false);
-                    _alarm.audioFilePathName = alarmVM.selectedAudioFile;
-                    alarmVM.editAlarm(_alarm);
-
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                ),
-              ],
-            ),
-          ],
+          children: alarmEditionWidgetLst,
         ),
       ),
     );
   }
+}
+
+List<Widget> createAlarmEditionWidgetLst({
+  required TextEditingController nameController,
+  required TextEditingController timeController,
+  required TextEditingController durationController,
+}) {
+  List<Widget> alarmEditionWidgetLst = [];
+
+  alarmEditionWidgetLst.add(TextFormField(
+    controller: nameController,
+    decoration: const InputDecoration(
+      labelText: 'Name',
+      labelStyle: TextStyle(
+        fontSize: kLabelStyleFontSize,
+      ),
+    ),
+    style: const TextStyle(
+      fontSize: kFontSize,
+    ),
+  ));
+  alarmEditionWidgetLst.add(TextFormField(
+    controller: timeController,
+    decoration: const InputDecoration(
+      labelText: 'Next Alarm Time (hh:mm)',
+      labelStyle: TextStyle(
+        fontSize: kLabelStyleFontSize,
+      ),
+    ),
+    style: const TextStyle(
+      fontSize: kFontSize,
+    ),
+  ));
+  alarmEditionWidgetLst.add(TextFormField(
+    controller: durationController,
+    decoration: const InputDecoration(
+      labelText: 'Periodicity (hh:mm)',
+      labelStyle: TextStyle(
+        fontSize: kLabelStyleFontSize,
+      ),
+    ),
+    style: const TextStyle(
+      fontSize: kFontSize,
+    ),
+  ));
+  alarmEditionWidgetLst.add(Consumer<AlarmVM>(
+    builder: (context, viewModel, child) => DropdownButton<String>(
+      value: viewModel.selectedAudioFile,
+      items: AlarmVM.audioFileNames.map((String fileName) {
+        return DropdownMenuItem<String>(
+          value: fileName,
+          child: Text(
+            fileName,
+            style: const TextStyle(fontSize: kFontSize),
+          ),
+        );
+      }).toList(),
+      onChanged: (newValue) {
+        if (newValue != null) {
+          viewModel.selectedAudioFile = newValue;
+        }
+      },
+    ),
+  ));
+
+  return alarmEditionWidgetLst;
 }
 
 class MyApp extends StatelessWidget {
@@ -986,6 +1001,12 @@ class _AlarmPageState extends State<AlarmPage> {
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
     alarmVM.selectedAudioFile = alarm.audioFilePathName.split('/').last;
 
+    List<Widget> alarmEditionWidgetLst = createAlarmEditionWidgetLst(
+      nameController: nameController,
+      timeController: timeController,
+      durationController: durationController,
+    );
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -994,57 +1015,7 @@ class _AlarmPageState extends State<AlarmPage> {
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    labelStyle: TextStyle(
-                      fontSize: kLabelStyleFontSize,
-                    ),
-                  ),
-                ),
-                TextFormField(
-                  controller: timeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Next Alarm Time (hh:mm)',
-                    labelStyle: TextStyle(
-                      fontSize: kLabelStyleFontSize,
-                    ),
-                  ),
-                ),
-                TextFormField(
-                  controller: durationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Periodicity (hh:mm)',
-                    labelStyle: TextStyle(
-                      fontSize: kLabelStyleFontSize,
-                    ),
-                  ),
-                ),
-                Consumer<AlarmVM>(
-                  builder: (context, viewModel, child) =>
-                      DropdownButton<String>(
-                    value: viewModel.selectedAudioFile,
-                    items: AlarmVM.audioFileNames.map((String fileName) {
-                      return DropdownMenuItem<String>(
-                        value: fileName,
-                        child: Text(
-                          fileName,
-                          style: const TextStyle(
-                            fontSize: kFontSize,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        viewModel.selectedAudioFile = newValue;
-                      }
-                    },
-                  ),
-                ),
-              ],
+              children: alarmEditionWidgetLst,
             ),
           ),
           actions: [
