@@ -867,6 +867,12 @@ class _AlarmPageState extends State<AlarmPage> {
     AlarmVM alarmVM = Provider.of<AlarmVM>(context, listen: false);
     alarmVM.selectedAudioFile = AlarmVM.audioFileNames[0];
 
+    List<Widget> alarmEditionWidgetLst = createAlarmEditionWidgetLst(
+      nameController: nameController,
+      timeController: timeController,
+      durationController: durationController,
+    );
+
     return showDialog<Alarm>(
       context: context,
       builder: (BuildContext context) {
@@ -874,66 +880,7 @@ class _AlarmPageState extends State<AlarmPage> {
           title: const Text('Add New Alarm'),
           content: SingleChildScrollView(
             child: Column(
-              children: <Widget>[
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    labelStyle: TextStyle(
-                      fontSize: kLabelStyleFontSize,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: kFontSize,
-                  ),
-                ),
-                TextFormField(
-                  controller: timeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Next Alarm Time (hh:mm)',
-                    labelStyle: TextStyle(
-                      fontSize: kLabelStyleFontSize,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: kFontSize,
-                  ),
-                ),
-                TextFormField(
-                  controller: durationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Periodicity (hh:mm)',
-                    labelStyle: TextStyle(
-                      fontSize: kLabelStyleFontSize,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: kFontSize,
-                  ),
-                ),
-                Consumer<AlarmVM>(
-                  builder: (context, viewModel, child) =>
-                      DropdownButton<String>(
-                    value: viewModel.selectedAudioFile,
-                    items: AlarmVM.audioFileNames.map((String fileName) {
-                      return DropdownMenuItem<String>(
-                        value: fileName,
-                        child: Text(
-                          fileName,
-                          style: const TextStyle(
-                            fontSize: kFontSize,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        viewModel.selectedAudioFile = newValue;
-                      }
-                    },
-                  ),
-                ),
-              ],
+              children: alarmEditionWidgetLst,
             ),
           ),
           actions: <Widget>[
