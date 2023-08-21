@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-const double kFontSize = 19;
+const double kFontSize = 20;
 const double kLabelStyleFontSize = 25;
 
 void main() {
@@ -839,19 +839,19 @@ class _AlarmPageState extends State<AlarmPage> {
                     children: [
                       widget.createInfoRowFunction(
                         context: context,
-                        label: 'Last alarm: ',
-                        value: (alarm.lastAlarmTimePurpose == null)
-                            ? ''
-                            : DateTimeParser.frenchDateTimeFormat
-                                .format(alarm.lastAlarmTimePurpose!),
-                      ),
-                      widget.createInfoRowFunction(
-                        context: context,
                         label: 'Real alarm: ',
                         value: (alarm.lastAlarmTimeReal == null)
                             ? ''
                             : DateTimeParser.frenchDateTimeFormat
                                 .format(alarm.lastAlarmTimeReal!),
+                      ),
+                      widget.createInfoRowFunction(
+                        context: context,
+                        label: 'Last alarm: ',
+                        value: (alarm.lastAlarmTimePurpose == null)
+                            ? ''
+                            : DateTimeParser.frenchDateTimeFormat
+                                .format(alarm.lastAlarmTimePurpose!),
                       ),
                       widget.createInfoRowFunction(
                         context: context,
