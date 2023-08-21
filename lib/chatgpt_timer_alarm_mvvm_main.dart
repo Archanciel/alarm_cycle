@@ -24,7 +24,9 @@ void main() {
     child: const MyApp(),
   ));
 
-  BackgroundFetch.registerHeadlessTask(AlarmVM().checkAlarmsPeriodically);
+  BackgroundFetch.registerHeadlessTask(
+    AlarmVM().checkAlarmsPeriodically,
+  );
 }
 
 class DateTimeParser {
@@ -320,6 +322,26 @@ class AudioPlayerVM extends ChangeNotifier {
   }
 }
 
+/// The ViewModel of the AlarmPage is a singleton. This is because
+/// the checkAlarmsPeriodically() method is passed to BackgroundFetch
+/// as a static callback method. So, the callback method must be a
+/// member of a singleton in order to access to the alarms list of
+/// the singleton.
+/// 
+/// When the `checkAlarmsPeriodically` function is moved to be a static
+/// or top-level function, you'll lose access to the instance-specific
+/// properties and methods of `AlarmVM`. You'll need a mechanism to get
+/// the current instance of `AlarmVM` in the function. Here are some
+/// strategies:
+///
+/// 1. **Global Variable**:
+///    A simple but not always ideal method. If there's only ever one
+///    instance of `AlarmVM`, you could have a global variable that
+///    points to it.
+///
+/// 2. **Singleton**:
+///    If the `AlarmVM` class should have only one instance, you can
+///    implement it as a singleton.
 class AlarmVM with ChangeNotifier {
   List<Alarm> alarms = [];
 
@@ -799,12 +821,13 @@ class _AlarmPageState extends State<AlarmPage> {
 
   Future<void> _initPlatformState() async {
     BackgroundFetch.configure(
-        BackgroundFetchConfig(
-          minimumFetchInterval: 15,
-          stopOnTerminate: false,
-          enableHeadless: true,
-        ),
-        AlarmVM().checkAlarmsPeriodically);
+      BackgroundFetchConfig(
+        minimumFetchInterval: 15,
+        stopOnTerminate: false,
+        enableHeadless: true,
+      ),
+      AlarmVM().checkAlarmsPeriodically,
+    );
 
     BackgroundFetch.start();
   }
