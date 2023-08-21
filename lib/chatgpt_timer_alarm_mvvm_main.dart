@@ -535,6 +535,7 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
       body: Container(
         margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
               controller: nameController,
@@ -563,7 +564,7 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
             TextFormField(
               controller: durationController,
               decoration: const InputDecoration(
-                labelText: 'Periodic Duration (hh:mm)',
+                labelText: 'Periodicity (hh:mm)',
                 labelStyle: TextStyle(
                   fontSize: kLabelStyleFontSize,
                 ),
