@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-const double kFontSize = 20;
+const double kFontSize = 19;
 const double kLabelStyleFontSize = 25;
 
 void main() {
@@ -327,7 +327,7 @@ class AudioPlayerVM extends ChangeNotifier {
 /// as a static callback method. So, the callback method must be a
 /// member of a singleton in order to access to the alarms list of
 /// the singleton.
-/// 
+///
 /// When the `checkAlarmsPeriodically` function is moved to be a static
 /// or top-level function, you'll lose access to the instance-specific
 /// properties and methods of `AlarmVM`. You'll need a mechanism to get
@@ -353,6 +353,7 @@ class AlarmVM with ChangeNotifier {
   static const List<String> audioFileNames = [
     'Sirdalud.mp3',
     'Lioresal.mp3',
+    'ArrosePlante.mp3',
     // ... other files
   ];
 
@@ -751,6 +752,7 @@ class AlarmPage extends StatefulWidget {
     required BuildContext context,
     required String label,
     required String value,
+    bool isTextBold = false,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -759,8 +761,9 @@ class AlarmPage extends StatefulWidget {
           width: MediaQuery.of(context).size.width * 0.3,
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: kFontSize,
+              fontWeight: isTextBold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ),
@@ -768,8 +771,9 @@ class AlarmPage extends StatefulWidget {
           child: Text(
             key: valueTextWidgetKey,
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: kFontSize,
+              fontWeight: isTextBold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ),
@@ -881,6 +885,7 @@ class _AlarmPageState extends State<AlarmPage> {
                         label: 'Next alarm: ',
                         value: DateTimeParser.frenchDateTimeFormat
                             .format(alarm.nextAlarmTime),
+                        isTextBold: true,
                       ),
                       widget.createInfoRowFunction(
                         context: context,
