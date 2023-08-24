@@ -34,10 +34,10 @@ class MyHomePage extends StatelessWidget {
             const SizedBox(
               height: 30,
             ),
-            Text(
+            const Text(
               alarmListLabel,
               style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+                  TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
             ),
             Expanded(
               child: Consumer<AlarmVM>(
@@ -87,7 +87,7 @@ class MyHomePage extends StatelessWidget {
                         _showAddAlarmDialog(context);
                       },
                       icon: const Icon(Icons.add),
-                      label: Text(addAlarmLabel)),
+                      label: const Text(addAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
@@ -100,7 +100,7 @@ class MyHomePage extends StatelessWidget {
                         _showDetailsAlarmDialog(context);
                       },
                       icon: const Icon(Icons.details),
-                      label: Text(detailAlarmLabel)),
+                      label: const Text(detailAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
@@ -113,7 +113,7 @@ class MyHomePage extends StatelessWidget {
                         _showEditAlarmDialog(context);
                       },
                       icon: const Icon(Icons.edit),
-                      label: Text(editAlarmLabel)),
+                      label: const Text(editAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
@@ -126,7 +126,7 @@ class MyHomePage extends StatelessWidget {
                         _showDeleteAlarmDialog(context);
                       },
                       icon: const Icon(Icons.delete),
-                      label: Text(deleteAlarmLabel)),
+                      label: const Text(deleteAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
