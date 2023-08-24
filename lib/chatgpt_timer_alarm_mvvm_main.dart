@@ -375,7 +375,7 @@ class AlarmVM with ChangeNotifier {
 
   AlarmVM._internal() {
     _loadAlarms();
-    _initializeNotifications();
+    _initializeLocalNotificationPlugin();
   }
 
   // AlarmVM() {
@@ -420,13 +420,10 @@ class AlarmVM with ChangeNotifier {
     await filePath.writeAsString(json.encode(jsonAlarms));
   }
 
-  /// Method called by Timer.periodic to check if an alarm should be
-  /// triggered. If an alarm is triggered, its nextAlarmTime is updated
-  /// and the updated alarm is saved to the JSON file.
-  ///
-  /// Method called by BackgroundFetch every 15 minutes to check if an
-  /// alarm should be triggered. If an alarm is triggered, its
-  /// nextAlarmTime is updated
+  /// Method called by BackgroundFetch every 15 minutes to check if
+  /// an alarm should be triggered. If an alarm is triggered, its
+  /// nextAlarmTime is updated and the updated alarm is saved to the
+  /// JSON file.
   Future<void> checkAlarmsPeriodically(String taskId) async {
     bool wasAlarnModified = false;
 
@@ -434,7 +431,7 @@ class AlarmVM with ChangeNotifier {
 
     for (Alarm alarm in alarms) {
       if (alarm.nextAlarmTime.isBefore(now)) {
-        _triggerNotification(alarm);
+        _displayAndroidNotification(alarm);
         await audioPlayerVM.playFromAssets(alarm);
 
         // Update the nextAlarmTime
@@ -493,19 +490,23 @@ class AlarmVM with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _initializeNotifications() async {
+  Future<void> _initializeLocalNotificationPlugin() async {
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/ic_launcher');
     InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
     );
+
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: _onDidReceiveLocalNotification,
+      onDidReceiveNotificationResponse: onClickedNotificationDisplayEditAlarmScreen,
     );
   }
 
-  Future<void> _onDidReceiveLocalNotification(
+  /// Function called back when the user clicks on a Flutter 
+  /// local notification. The function opens the edit alarm
+  /// sreen.
+  Future<void> onClickedNotificationDisplayEditAlarmScreen(
       NotificationResponse response) async {
     // Handle the notification interaction here
     if (response.payload == null || response.payload?.isEmpty == true) {
@@ -521,7 +522,7 @@ class AlarmVM with ChangeNotifier {
     ));
   }
 
-  Future<void> _triggerNotification(Alarm alarm) async {
+  Future<void> _displayAndroidNotification(Alarm alarm) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics =
         const AndroidNotificationDetails(
       'alarm_notif',
