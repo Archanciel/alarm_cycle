@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-const double kFontSize = 19;
+const double kFontSize = 17;
 const double kLabelStyleFontSize = 25;
 
 void main() {
@@ -451,7 +451,7 @@ class AlarmVM with ChangeNotifier {
         if (i < sortedAlarms.length - 1 &&
             sortedAlarms[i + 1].nextAlarmTime == alarm.nextAlarmTime) {
           await Future.delayed(
-              const Duration(seconds: 30)); // Wait for 30 seconds
+              const Duration(minutes: 1)); // Wait for 1 minute
         }
       }
     }
@@ -604,7 +604,9 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
     List<Widget> alarmEditionWidgetLst = createAlarmEditionWidgetLst(
       nameController: nameController,
       timeController: timeController,
-      durationController: durationController,
+      periodicityDurationController: durationController,
+      isNextAlarmClearButtonDisplayed: true,
+      isPeriodicityClearButtonDisplayed: true,
     );
 
     alarmEditionWidgetLst.add(Row(
@@ -674,7 +676,9 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
 List<Widget> createAlarmEditionWidgetLst({
   required TextEditingController nameController,
   required TextEditingController timeController,
-  required TextEditingController durationController,
+  required TextEditingController periodicityDurationController,
+  bool isNextAlarmClearButtonDisplayed = false,
+  bool isPeriodicityClearButtonDisplayed = false,
 }) {
   List<Widget> alarmEditionWidgetLst = [];
 
@@ -692,23 +696,37 @@ List<Widget> createAlarmEditionWidgetLst({
   ));
   alarmEditionWidgetLst.add(TextFormField(
     controller: timeController,
-    decoration: const InputDecoration(
+    decoration: InputDecoration(
       labelText: 'Next Alarm Time (hh:mm)',
-      labelStyle: TextStyle(
+      labelStyle: const TextStyle(
         fontSize: kLabelStyleFontSize,
       ),
+      // Add the clear button to the InputDecoration
+      suffixIcon: isNextAlarmClearButtonDisplayed
+          ? IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () => timeController.clear(),
+            )
+          : null,
     ),
     style: const TextStyle(
       fontSize: kFontSize,
     ),
   ));
   alarmEditionWidgetLst.add(TextFormField(
-    controller: durationController,
-    decoration: const InputDecoration(
+    controller: periodicityDurationController,
+    decoration: InputDecoration(
       labelText: 'Periodicity (hh:mm)',
-      labelStyle: TextStyle(
+      labelStyle: const TextStyle(
         fontSize: kLabelStyleFontSize,
       ),
+      // Add the clear button to the InputDecoration
+      suffixIcon: isPeriodicityClearButtonDisplayed
+          ? IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () => periodicityDurationController.clear(),
+            )
+          : null,
     ),
     style: const TextStyle(
       fontSize: kFontSize,
@@ -953,7 +971,8 @@ class _AlarmPageState extends State<AlarmPage> {
     List<Widget> alarmEditionWidgetLst = createAlarmEditionWidgetLst(
       nameController: nameController,
       timeController: timeController,
-      durationController: durationController,
+      periodicityDurationController: durationController,
+      isNextAlarmClearButtonDisplayed: true,
     );
 
     return showDialog<Alarm>(
@@ -1031,7 +1050,9 @@ class _AlarmPageState extends State<AlarmPage> {
     List<Widget> alarmEditionWidgetLst = createAlarmEditionWidgetLst(
       nameController: nameController,
       timeController: timeController,
-      durationController: durationController,
+      periodicityDurationController: durationController,
+      isNextAlarmClearButtonDisplayed: true,
+      isPeriodicityClearButtonDisplayed: true,
     );
 
     showDialog(
