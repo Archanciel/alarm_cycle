@@ -375,7 +375,7 @@ class AlarmVM with ChangeNotifier {
 
   AlarmVM._internal() {
     _loadAlarms();
-    _initializeLocalNotificationPlugin();
+    _initializeNotifications();
   }
 
   // AlarmVM() {
@@ -425,32 +425,43 @@ class AlarmVM with ChangeNotifier {
   /// nextAlarmTime is updated and the updated alarm is saved to the
   /// JSON file.
   Future<void> checkAlarmsPeriodically(String taskId) async {
-    bool wasAlarnModified = false;
+    bool wasAlarmModified = false;
 
     DateTime now = DateTime.now();
 
-    for (Alarm alarm in alarms) {
+    // Create a copy of the alarms and sort it by nextAlarmTime
+    List<Alarm> sortedAlarms = List.from(alarms);
+    sortedAlarms.sort((a, b) => a.nextAlarmTime.compareTo(b.nextAlarmTime));
+
+    for (int i = 0; i < sortedAlarms.length; i++) {
+      Alarm alarm = sortedAlarms[i];
+
       if (alarm.nextAlarmTime.isBefore(now)) {
         _displayAndroidNotification(alarm);
         await audioPlayerVM.playFromAssets(alarm);
 
         // Update the nextAlarmTime
-        // alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
-        //     .add(alarm.periodicDuration);
         alarm.lastAlarmTimePurpose = alarm.nextAlarmTime;
         alarm.lastAlarmTimeReal = now;
         alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.periodicDuration);
-        wasAlarnModified = true;
+        wasAlarmModified = true;
+
+        // Check if the next alarm has the same nextAlarmTime and
+        // introduce a delay if so
+        if (i < sortedAlarms.length - 1 &&
+            sortedAlarms[i + 1].nextAlarmTime == alarm.nextAlarmTime) {
+          await Future.delayed(
+              const Duration(seconds: 30)); // Wait for 30 seconds
+        }
       }
     }
 
-    if (wasAlarnModified) {
+    if (wasAlarmModified) {
       _saveAlarms();
-
       notifyListeners();
     }
 
-    // Important: end the task here, or the OS could be kill the app
+    // Important: end the task here, or the OS could kill the app
     BackgroundFetch.finish(taskId);
   }
 
@@ -490,7 +501,7 @@ class AlarmVM with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _initializeLocalNotificationPlugin() async {
+  Future<void> _initializeNotifications() async {
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/ic_launcher');
     InitializationSettings initializationSettings = InitializationSettings(
@@ -499,11 +510,12 @@ class AlarmVM with ChangeNotifier {
 
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: onClickedNotificationDisplayEditAlarmScreen,
+      onDidReceiveNotificationResponse:
+          onClickedNotificationDisplayEditAlarmScreen,
     );
   }
 
-  /// Function called back when the user clicks on a Flutter 
+  /// Function called back when the user clicks on a Flutter
   /// local notification. The function opens the edit alarm
   /// sreen.
   Future<void> onClickedNotificationDisplayEditAlarmScreen(
