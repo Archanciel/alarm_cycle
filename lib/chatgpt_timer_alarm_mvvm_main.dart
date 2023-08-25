@@ -425,43 +425,32 @@ class AlarmVM with ChangeNotifier {
   /// nextAlarmTime is updated and the updated alarm is saved to the
   /// JSON file.
   Future<void> checkAlarmsPeriodically(String taskId) async {
-    bool wasAlarmModified = false;
+    bool wasAlarnModified = false;
 
     DateTime now = DateTime.now();
 
-    // Create a copy of the alarms and sort it by nextAlarmTime
-    List<Alarm> sortedAlarms = List.from(alarms);
-    sortedAlarms.sort((a, b) => a.nextAlarmTime.compareTo(b.nextAlarmTime));
-
-    for (int i = 0; i < sortedAlarms.length; i++) {
-      Alarm alarm = sortedAlarms[i];
-
+    for (Alarm alarm in alarms) {
       if (alarm.nextAlarmTime.isBefore(now)) {
         _displayAndroidNotification(alarm);
         await audioPlayerVM.playFromAssets(alarm);
 
         // Update the nextAlarmTime
+        // alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
+        //     .add(alarm.periodicDuration);
         alarm.lastAlarmTimePurpose = alarm.nextAlarmTime;
         alarm.lastAlarmTimeReal = now;
         alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.periodicDuration);
-        wasAlarmModified = true;
-
-        // Check if the next alarm has the same nextAlarmTime and
-        // introduce a delay if so
-        if (i < sortedAlarms.length - 1 &&
-            sortedAlarms[i + 1].nextAlarmTime == alarm.nextAlarmTime) {
-          await Future.delayed(
-              const Duration(minutes: 1)); // Wait for 1 minute
-        }
+        wasAlarnModified = true;
       }
     }
 
-    if (wasAlarmModified) {
+    if (wasAlarnModified) {
       _saveAlarms();
+
       notifyListeners();
     }
 
-    // Important: end the task here, or the OS could kill the app
+    // Important: end the task here, or the OS could be kill the app
     BackgroundFetch.finish(taskId);
   }
 
