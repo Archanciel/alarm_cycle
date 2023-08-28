@@ -859,7 +859,7 @@ class _AlarmPageState extends State<AlarmPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Gestionnaire d'alarmes")),
+      appBar: AppBar(title: const Text("Alarm Manager")),
       body: Consumer<AlarmVM>(
         builder: (context, viewModel, child) => ListView.builder(
           itemCount: viewModel.alarms.length,
