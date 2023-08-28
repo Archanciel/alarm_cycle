@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,10 +22,6 @@ void main() {
     create: (context) => AlarmVM(),
     child: const MyApp(),
   ));
-
-  BackgroundFetch.registerHeadlessTask(
-    AlarmVM().checkAlarmsPeriodically,
-  );
 }
 
 class DateTimeParser {
@@ -322,28 +317,9 @@ class AudioPlayerVM extends ChangeNotifier {
   }
 }
 
-/// The ViewModel of the AlarmPage is a singleton. This is because
-/// the checkAlarmsPeriodically() method is passed to BackgroundFetch
-/// as a static callback method. So, the callback method must be a
-/// member of a singleton in order to access to the alarms list of
-/// the singleton.
-///
-/// When the `checkAlarmsPeriodically` function is moved to be a static
-/// or top-level function, you'll lose access to the instance-specific
-/// properties and methods of `AlarmVM`. You'll need a mechanism to get
-/// the current instance of `AlarmVM` in the function. Here are some
-/// strategies:
-///
-/// 1. **Global Variable**:
-///    A simple but not always ideal method. If there's only ever one
-///    instance of `AlarmVM`, you could have a global variable that
-///    points to it.
-///
-/// 2. **Singleton**:
-///    If the `AlarmVM` class should have only one instance, you can
-///    implement it as a singleton.
 class AlarmVM with ChangeNotifier {
   List<Alarm> alarms = [];
+  late Timer timer;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -367,24 +343,13 @@ class AlarmVM with ChangeNotifier {
 
   static const int alarmCheckingMinutes = 3;
 
-  static final AlarmVM _singleton = AlarmVM._internal();
-
-  factory AlarmVM() {
-    return _singleton;
-  }
-
-  AlarmVM._internal() {
+  AlarmVM() {
     _loadAlarms();
     _initializeNotifications();
+
+    timer = Timer.periodic(
+        const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
   }
-
-  // AlarmVM() {
-  //   _loadAlarms();
-  //   _initializeNotifications();
-
-  //   timer = Timer.periodic(
-  //       const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
-  // }
 
   Future<void> _loadAlarms() async {
     // Chargez les alarmes à partir du fichier JSON
@@ -420,11 +385,11 @@ class AlarmVM with ChangeNotifier {
     await filePath.writeAsString(json.encode(jsonAlarms));
   }
 
-  /// Method called by BackgroundFetch every 15 minutes to check if
+  /// Method called by Timer alarmCheckingMinutes minutes to check if
   /// an alarm should be triggered. If an alarm is triggered, its
   /// nextAlarmTime is updated and the updated alarm is saved to the
   /// JSON file.
-  Future<void> checkAlarmsPeriodically(String taskId) async {
+  Future<void> checkAlarmsPeriodically(Timer _) async {
     bool wasAlarnModified = false;
 
     DateTime now = DateTime.now();
@@ -449,9 +414,6 @@ class AlarmVM with ChangeNotifier {
 
       notifyListeners();
     }
-
-    // Important: end the task here, or the OS could be kill the app
-    BackgroundFetch.finish(taskId);
   }
 
   void addAlarm(Alarm alarm) {
@@ -808,8 +770,6 @@ class _AlarmPageState extends State<AlarmPage> {
     super.initState();
 
     _requestMultiplePermissions();
-
-    _initPlatformState();
   }
 
   void _requestMultiplePermissions() async {
@@ -841,19 +801,6 @@ class _AlarmPageState extends State<AlarmPage> {
       // Toutes les permissions ont été accordées, vous pouvez continuer avec
       // vos fonctionnalités.
     }
-  }
-
-  Future<void> _initPlatformState() async {
-    BackgroundFetch.configure(
-      BackgroundFetchConfig(
-        minimumFetchInterval: 15,
-        stopOnTerminate: false,
-        enableHeadless: true,
-      ),
-      AlarmVM().checkAlarmsPeriodically,
-    );
-
-    BackgroundFetch.start();
   }
 
   @override
