@@ -849,6 +849,11 @@ class _AlarmPageState extends State<AlarmPage> {
         minimumFetchInterval: 15,
         stopOnTerminate: false,
         enableHeadless: true,
+        requiresBatteryNotLow: false,
+        requiresCharging: false,
+        requiresStorageNotLow: false,
+        requiresDeviceIdle: false,
+        requiredNetworkType: NetworkType.NONE,
       ),
       AlarmVM().checkAlarmsPeriodically,
     );
