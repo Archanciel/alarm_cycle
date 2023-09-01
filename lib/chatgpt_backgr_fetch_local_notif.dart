@@ -838,8 +838,8 @@ class _AlarmPageState extends State<AlarmPage> {
       // Vous pouvez désactiver les fonctionnalités correspondantes dans
       // votre application ou montrer une alerte à l'utilisateur.
     } else {
-      // Toutes les permissions ont été accordées, vous pouvez continuer avec
-      // vos fonctionnalités.
+      // Toutes les permissions ont été accordées, vous pouvez continuer
+      // avec vos fonctionnalités.
     }
   }
 
