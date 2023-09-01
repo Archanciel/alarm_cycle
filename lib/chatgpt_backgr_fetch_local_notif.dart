@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-const double kFontSize = 17;
+const double kFontSize = 19;
 const double kLabelStyleFontSize = 25;
 
 void main() {
