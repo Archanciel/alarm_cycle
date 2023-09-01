@@ -37,7 +37,7 @@ class MyHomePage extends StatelessWidget {
             Text(
               alarmListLabel,
               style:
-                  TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
             ),
             Expanded(
               child: Consumer<AlarmVM>(
