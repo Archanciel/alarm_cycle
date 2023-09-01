@@ -18,6 +18,8 @@ dependencies:
   path: ^1.8.3
   permission_handler: ^10.4.3
   background_fetch: ^1.2.1
+  firebase_core: ^2.15.1
+  cloud_firestore: ^4.9.1
 
 dev_dependencies:
   flutter_test:

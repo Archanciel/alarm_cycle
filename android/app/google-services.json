@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "189369332185",
+    "project_id": "alarmcycle-a4afe",
+    "storage_bucket": "alarmcycle-a4afe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:189369332185:android:10741c0401601c8184a9c8",
+        "android_client_info": {
+          "package_name": "com.jpschnyder.alarm_cycle"
+        }
+      },
+       "oauth_client": [
+        {
+          "client_id": "189369332185-bsc0d1m2c9keh9dfdp2i5hvph78l46h7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8CO2oufrQtAkarOb7973sjKbhuGloZKA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "189369332185-bsc0d1m2c9keh9dfdp2i5hvph78l46h7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
