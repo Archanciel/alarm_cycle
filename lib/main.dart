@@ -34,7 +34,7 @@ class MyHomePage extends StatelessWidget {
             const SizedBox(
               height: 30,
             ),
-            const Text(
+            Text(
               alarmListLabel,
               style:
                   TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
@@ -87,7 +87,7 @@ class MyHomePage extends StatelessWidget {
                         _showAddAlarmDialog(context);
                       },
                       icon: const Icon(Icons.add),
-                      label: const Text(addAlarmLabel)),
+                      label: Text(addAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
@@ -100,7 +100,7 @@ class MyHomePage extends StatelessWidget {
                         _showDetailsAlarmDialog(context);
                       },
                       icon: const Icon(Icons.details),
-                      label: const Text(detailAlarmLabel)),
+                      label: Text(detailAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
@@ -113,7 +113,7 @@ class MyHomePage extends StatelessWidget {
                         _showEditAlarmDialog(context);
                       },
                       icon: const Icon(Icons.edit),
-                      label: const Text(editAlarmLabel)),
+                      label: Text(editAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,
@@ -126,7 +126,7 @@ class MyHomePage extends StatelessWidget {
                         _showDeleteAlarmDialog(context);
                       },
                       icon: const Icon(Icons.delete),
-                      label: const Text(deleteAlarmLabel)),
+                      label: Text(deleteAlarmLabel)),
                 ),
                 const SizedBox(
                   height: 5,

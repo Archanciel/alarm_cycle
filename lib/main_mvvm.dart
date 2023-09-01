@@ -156,7 +156,7 @@ class MyHomePage extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.watch_later_outlined),
-                      label: const Text(periodicAlarmLabel)),
+                      label: Text(periodicAlarmLabel)),
                 ),
                 const SizedBox(
                   width: 16,
@@ -173,7 +173,7 @@ class MyHomePage extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.watch_later_outlined),
-                      label: const Text(deleteAlarmLabel)),
+                      label: Text(deleteAlarmLabel)),
                 ),
               ],
             )
