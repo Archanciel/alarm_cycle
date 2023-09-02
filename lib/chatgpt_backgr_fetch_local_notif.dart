@@ -460,6 +460,7 @@ class AlarmVM with ChangeNotifier {
     BackgroundFetch.finish(taskId);
   }
 
+  /// This method is unit tested and so can't be private.
   void updateAlarmDateTimes({
     required Alarm alarm,
   }) {
