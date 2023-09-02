@@ -248,6 +248,21 @@ class Alarm {
     required this.audioFilePathName,
   });
 
+  // Copy constructor
+  Alarm.copy({
+    required Alarm originalAlarm,
+  })  : name = originalAlarm.name,
+        lastAlarmTimePurpose = originalAlarm.lastAlarmTimePurpose,
+        lastAlarmTimeReal = originalAlarm.lastAlarmTimeReal,
+        nextAlarmTime = originalAlarm.nextAlarmTime,
+        periodicDuration = originalAlarm.periodicDuration,
+        audioFilePathName = originalAlarm.audioFilePathName,
+        _isPlaying = originalAlarm._isPlaying,
+        _isPaused = originalAlarm._isPaused,
+        audioPlayer = originalAlarm.audioPlayer != null
+            ? AudioPlayer(playerId: originalAlarm.audioPlayer!.playerId)
+            : null;
+
   // Convertir un Alarme à partir de et vers un objet Map (pour la sérialisation JSON)
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -286,6 +301,7 @@ class AudioPlayerVM extends ChangeNotifier {
 
     if (!await file.exists()) {
       print('File not found: ${alarm.audioFilePathName}');
+      return;
     }
 
     AudioPlayer? audioPlayer = alarm.audioPlayer;
@@ -365,8 +381,6 @@ class AlarmVM with ChangeNotifier {
     notifyListeners();
   }
 
-  static const int alarmCheckingMinutes = 3;
-
   static final AlarmVM _singleton = AlarmVM._internal();
 
   factory AlarmVM() {
@@ -377,14 +391,6 @@ class AlarmVM with ChangeNotifier {
     _loadAlarms();
     _initializeNotifications();
   }
-
-  // AlarmVM() {
-  //   _loadAlarms();
-  //   _initializeNotifications();
-
-  //   timer = Timer.periodic(
-  //       const Duration(minutes: alarmCheckingMinutes), checkAlarmsPeriodically);
-  // }
 
   Future<void> _loadAlarms() async {
     // Chargez les alarmes à partir du fichier JSON
@@ -437,9 +443,9 @@ class AlarmVM with ChangeNotifier {
         // Update the nextAlarmTime
         // alarm.nextAlarmTime = DateTimeParser.truncateDateTimeToMinute(now)
         //     .add(alarm.periodicDuration);
-        alarm.lastAlarmTimePurpose = alarm.nextAlarmTime;
-        alarm.lastAlarmTimeReal = now;
-        alarm.nextAlarmTime = alarm.nextAlarmTime.add(alarm.periodicDuration);
+        updateAlarmDateTimes(
+          alarm: alarm,
+        );
         wasAlarnModified = true;
       }
     }
@@ -452,6 +458,27 @@ class AlarmVM with ChangeNotifier {
 
     // Important: end the task here, or the OS could be kill the app
     BackgroundFetch.finish(taskId);
+  }
+
+  void updateAlarmDateTimes({
+    required Alarm alarm,
+  }) {
+    DateTime nextAlarmDateTime = alarm.nextAlarmTime;
+    Duration periodicDuration = alarm.periodicDuration;
+
+    // it can happen that a previous alarm was not triggered. In this
+    // case, the nextAlarmDateTime + the periodicDuration would be in
+    // the past. So, we need to add the periodicDuration to the
+    // nextAlarmDateTime until the nextAlarmDateTime is in the future.
+    DateTime now = DateTime.now();
+
+    while (nextAlarmDateTime.isBefore(now)) {
+      nextAlarmDateTime = nextAlarmDateTime.add(periodicDuration);
+    }
+
+    alarm.lastAlarmTimePurpose = alarm.nextAlarmTime;
+    alarm.lastAlarmTimeReal = now;
+    alarm.nextAlarmTime = nextAlarmDateTime;
   }
 
   void addAlarm(Alarm alarm) {
