@@ -105,5 +105,36 @@ void main() {
       expect(alarm.nextAlarmTime,
           DateTimeParser.truncateDateTimeToMinute(now).add(periodicDuration));
     });
+    test(
+        'updates an alarm with next alarm time before now minus 1.5 periodicDuration',
+        () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const Duration periodicDuration = Duration(hours: 5);
+
+      DateTime now = DateTime.now();
+      DateTime lastAlarmTimePurpose = DateTimeParser.truncateDateTimeToMinute(
+          now.subtract(periodicDuration * 1.5));
+
+      Alarm alarm = Alarm(
+        name: 'test',
+        lastAlarmTimePurpose: lastAlarmTimePurpose,
+        lastAlarmTimeReal: lastAlarmTimePurpose.add(const Duration(minutes: 7)),
+        nextAlarmTime: lastAlarmTimePurpose.add(periodicDuration),
+        periodicDuration: periodicDuration,
+        audioFilePathName: '',
+      );
+
+      Alarm initialAlarm = Alarm.copy(originalAlarm: alarm);
+
+      AlarmVM().updateAlarmDateTimes(alarm: alarm);
+
+      // Assert
+      expect(alarm.lastAlarmTimePurpose, initialAlarm.nextAlarmTime);
+      final Duration difference =
+          alarm.lastAlarmTimeReal!.difference(now).abs();
+      expect(difference.inSeconds <= 1, true);
+      expect(alarm.nextAlarmTime,
+          initialAlarm.nextAlarmTime.add(periodicDuration));
+    });
   });
 }
