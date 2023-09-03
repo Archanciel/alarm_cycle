@@ -297,13 +297,6 @@ class AudioPlayerVM extends ChangeNotifier {
   /// Example: audioFilePath = 'audio/Sirdalud.mp3' if
   /// the audio file is located in the assets/audio folder.
   Future<void> playFromAssets(Alarm alarm) async {
-    final file = File(alarm.audioFilePathName);
-
-    if (!await file.exists()) {
-      print('File not found: ${alarm.audioFilePathName}');
-      return;
-    }
-
     AudioPlayer? audioPlayer = alarm.audioPlayer;
 
     if (audioPlayer == null) {
@@ -718,6 +711,8 @@ List<Widget> createAlarmEditionWidgetLst({
       labelStyle: const TextStyle(
         fontSize: kLabelStyleFontSize,
       ),
+      helperText:
+          'If the next hh:mm alarm time is before\nthe now hh:mm time, the next alarm date\nwill be set to tomorrow. Otherwise, the\nnext alarm date will be set to today.',
       // Add the clear button to the InputDecoration
       suffixIcon: isNextAlarmClearButtonDisplayed
           ? IconButton(
