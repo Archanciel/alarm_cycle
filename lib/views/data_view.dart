@@ -4,10 +4,12 @@ import '../models/data_model.dart';
 import '../viewmodels/data_viewmodel.dart';
 
 class DataView extends StatelessWidget {
+  const DataView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Data Sync App')),
+      appBar: AppBar(title: const Text('Data Sync App')),
       body: Consumer<DataViewModel>(
         builder: (context, viewModel, child) {
           return ListView.builder(
@@ -26,7 +28,7 @@ class DataView extends StatelessWidget {
           final newData = DataModel(id: '1', content: 'New Data');
           Provider.of<DataViewModel>(context, listen: false).addData(newData);
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

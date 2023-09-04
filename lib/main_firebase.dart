@@ -4,15 +4,17 @@ import 'viewmodels/data_viewmodel.dart';
 import 'views/data_view.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => DataViewModel()..loadData(),
-      child: MaterialApp(
+      child: const MaterialApp(
         home: DataView(),
       ),
     );
