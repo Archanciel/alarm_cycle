@@ -179,13 +179,19 @@ class DateTimeParser {
 
   /// If the input HH:mm time string is before now, the method
   /// returns a DateTime object with the same time but tomorrow.
-  static DateTime computeNextAlarmDateTime({
+  static DateTime? computeNextAlarmDateTime({
     required String formattedHhMmNextAlarmTimeStr,
   }) {
     int nowMinutes = DateTime.now().hour * 60 + DateTime.now().minute;
-    int nextAlarmMinutes =
-        int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]) * 60 +
-            int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]);
+    int nextAlarmMinutes;
+
+    try {
+      nextAlarmMinutes =
+          int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]) * 60 +
+              int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]);
+    } catch (e) {
+      return null;
+    }
 
     if (nextAlarmMinutes <= nowMinutes) {
       return DateTime(
@@ -202,6 +208,50 @@ class DateTimeParser {
         DateTime.now().day,
         int.parse(formattedHhMmNextAlarmTimeStr.split(':')[0]),
         int.parse(formattedHhMmNextAlarmTimeStr.split(':')[1]));
+  }
+
+  /// This method takes a DateTime object as input and returns a
+  /// string formatted as "HH:mm" or "dd-MM-yyyy HH:mm" depending
+  /// on whether the input DateTime is after today midnight or not.
+  static String formatDateTimeHHmmOrddMMyyyyHHmm({
+    required DateTime dateTime,
+  }) {
+    DateTime now = DateTime.now();
+    DateTime todayMidnight = DateTime(now.year, now.month, now.day);
+    DateTime dateTimeMidnight =
+        DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    bool isNextAlarmDateAfterToday = dateTimeMidnight.isAfter(todayMidnight);
+
+    if (isNextAlarmDateAfterToday) {
+      return frenchDateTimeFormat.format(dateTime);
+    } else {
+      return HHmmDateTimeFormat.format(dateTime);
+    }
+  }
+
+  /// This method takes a string as input and returns a DateTime
+  /// object. The dateTimeStr can be formatted as "HH:mm" or
+  /// "dd-MM-yyyy HH:mm".
+  static DateTime? parseHHmmOrddMMyyyyHHmmDateTime({
+    required String dateTimeStr,
+  }) {
+    DateTime? parsedDate;
+
+    // Try parsing with the "HH:mm" format
+    try {
+      parsedDate = HHmmDateTimeFormat.parseStrict(dateTimeStr);
+    } catch (e) {
+      // If parsing with "HH:mm" fails, try "dd-MM-yyyy HH:mm"
+      try {
+        parsedDate = frenchDateTimeFormat.parseStrict(dateTimeStr);
+      } catch (e) {
+        // If parsing with both formats fails, return null
+        parsedDate = null;
+      }
+    }
+
+    return parsedDate;
   }
 }
 
@@ -634,16 +684,9 @@ class _SimpleEditAlarmScreenState extends State<SimpleEditAlarmScreen> {
             // Update the current alarm's details
             _alarm.name = nameController.text;
 
-            // enabling the user to enter a next alarm time in a
-            // simplified format (e.g. 9:3 for 09:30 or 15 for
-            // 15:00.
-            final String formattedHhMmNextAlarmTimeStr =
-                DateTimeParser.formatStringDuration(
-              durationStr: timeController.text,
-            );
-
-            _alarm.nextAlarmTime = DateTimeParser.computeNextAlarmDateTime(
-              formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
+            _alarm.nextAlarmTime = extractNextAlarmDateTime(
+              nextAlarmTimeStr: timeController.text,
+              currentAlarmDateTime: _alarm.nextAlarmTime,
             );
 
             // enabling the user to enter a periodicity in a
@@ -1022,7 +1065,9 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTimeParser.formatStringDuration(
                   durationStr: timeController.text,
                 );
-                final nextAlarmTime = DateTimeParser.computeNextAlarmDateTime(
+
+                DateTime? nextAlarmTime =
+                    DateTimeParser.computeNextAlarmDateTime(
                   formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
                 );
 
@@ -1033,6 +1078,7 @@ class _AlarmPageState extends State<AlarmPage> {
                     DateTimeParser.formatStringDuration(
                   durationStr: durationController.text,
                 );
+
                 final periodicDuration = Duration(
                   hours: int.parse(formattedHhMmPeriodicityStr.split(':')[0]),
                   minutes: int.parse(formattedHhMmPeriodicityStr.split(':')[1]),
@@ -1040,7 +1086,7 @@ class _AlarmPageState extends State<AlarmPage> {
 
                 Navigator.of(context).pop(Alarm(
                     name: name,
-                    nextAlarmTime: nextAlarmTime,
+                    nextAlarmTime: nextAlarmTime!,
                     periodicDuration: periodicDuration,
                     audioFilePathName: alarmVM.selectedAudioFile));
               },
@@ -1054,8 +1100,14 @@ class _AlarmPageState extends State<AlarmPage> {
   _showEditAlarmDialog(Alarm alarm) {
     TextEditingController nameController =
         TextEditingController(text: alarm.name);
-    TextEditingController timeController = TextEditingController(
-        text: DateTimeParser.HHmmDateTimeFormat.format(alarm.nextAlarmTime));
+    DateTime nextAlarmTime = alarm.nextAlarmTime;
+
+    String nextAlarmTimeStr = DateTimeParser.formatDateTimeHHmmOrddMMyyyyHHmm(
+      dateTime: nextAlarmTime,
+    );
+
+    TextEditingController timeController =
+        TextEditingController(text: nextAlarmTimeStr);
     TextEditingController durationController = TextEditingController(
         text:
             "${alarm.periodicDuration.inHours.toString().padLeft(2, '0')}:${(alarm.periodicDuration.inMinutes % 60).toString().padLeft(2, '0')}");
@@ -1096,16 +1148,9 @@ class _AlarmPageState extends State<AlarmPage> {
                 // Update the current alarm's details
                 alarm.name = nameController.text;
 
-                // enabling the user to enter a next alarm time in a
-                // simplified format (e.g. 9:3 for 09:30 or 15 for
-                // 15:00.
-                final String formattedHhMmNextAlarmTimeStr =
-                    DateTimeParser.formatStringDuration(
-                  durationStr: timeController.text,
-                );
-
-                alarm.nextAlarmTime = DateTimeParser.computeNextAlarmDateTime(
-                  formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
+                alarm.nextAlarmTime = extractNextAlarmDateTime(
+                  nextAlarmTimeStr: timeController.text,
+                  currentAlarmDateTime: alarm.nextAlarmTime,
                 );
 
                 // enabling the user to enter a periodicity in a
@@ -1130,5 +1175,41 @@ class _AlarmPageState extends State<AlarmPage> {
         );
       },
     );
+  }
+}
+
+DateTime extractNextAlarmDateTime({
+  required String nextAlarmTimeStr,
+  required DateTime currentAlarmDateTime,
+}) {
+  // enabling the user to enter a next alarm time in a
+  // simplified format (e.g. 9:3 for 09:30 or 15 for
+  // 15:00.
+  final String formattedHhMmNextAlarmTimeStr =
+      DateTimeParser.formatStringDuration(
+    durationStr: nextAlarmTimeStr,
+  );
+
+  DateTime? computedNextAlarmDateTime = DateTimeParser.computeNextAlarmDateTime(
+    formattedHhMmNextAlarmTimeStr: formattedHhMmNextAlarmTimeStr,
+  );
+
+  if (computedNextAlarmDateTime != null) {
+    // the entered next alarm time was a HH:mm or
+    // simplified hour time
+    return computedNextAlarmDateTime;
+  } else {
+    // the entered next alarm time was formatted as
+    // dd-MM-yyyy HH:mm
+    DateTime? parsed_ddMMyyyyHHmmDateTime =
+        DateTimeParser.parseHHmmOrddMMyyyyHHmmDateTime(
+      dateTimeStr: nextAlarmTimeStr,
+    );
+
+    if (parsed_ddMMyyyyHHmmDateTime != null) {
+      return parsed_ddMMyyyyHHmmDateTime;
+    } else {
+      return currentAlarmDateTime;
+    }
   }
 }
