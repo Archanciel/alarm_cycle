@@ -1201,13 +1201,13 @@ DateTime extractNextAlarmDateTime({
   } else {
     // the entered next alarm time was formatted as
     // dd-MM-yyyy HH:mm
-    DateTime? parsed_ddMMyyyyHHmmDateTime =
+    DateTime? parsedDdmmyyyyhhmmdatetime =
         DateTimeParser.parseHHmmOrddMMyyyyHHmmDateTime(
       dateTimeStr: nextAlarmTimeStr,
     );
 
-    if (parsed_ddMMyyyyHHmmDateTime != null) {
-      return parsed_ddMMyyyyHHmmDateTime;
+    if (parsedDdmmyyyyhhmmdatetime != null) {
+      return parsedDdmmyyyyhhmmdatetime;
     } else {
       return currentAlarmDateTime;
     }
