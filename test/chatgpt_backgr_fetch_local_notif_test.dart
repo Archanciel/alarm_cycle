@@ -5,7 +5,6 @@ import 'package:alarm_cycle/util/date_time_parser.dart';
 import 'package:alarm_cycle/viewmodels/alarm_vm.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:alarm_cycle/main.dart';
 
 void main() {
   group('checkAlarmsPeriodically', () {
