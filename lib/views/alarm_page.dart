@@ -122,7 +122,8 @@ class _AlarmPageState extends State<AlarmPage> with ScreenMixin {
             final alarm = viewModel.alarms[index];
             return Container(
               margin: const EdgeInsets.symmetric(
-                vertical: 15,
+                vertical: 2, // determines the vertical space
+                //              between each ListTile
               ),
               child: ListTile(
                 title: Text(

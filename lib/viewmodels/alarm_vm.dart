@@ -83,7 +83,8 @@ class AlarmVM with ChangeNotifier {
     'Sirdalud.mp3',
     'Lioresal.mp3',
     'ArrosePlante.mp3',
-    // ... other files
+    'LaveTesCh.mp3',
+    // other audio files ...
   ];
 
   String _selectedAudioFile = audioFileNames.first;
