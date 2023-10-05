@@ -130,6 +130,8 @@ class _AlarmPageState extends State<AlarmPage> with ScreenMixin {
                   alarm.name,
                   style: const TextStyle(
                     fontSize: kFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
                   ),
                 ),
                 subtitle: InkWell(
