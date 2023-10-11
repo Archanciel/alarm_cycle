@@ -1,10 +1,10 @@
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import '../constant.dart';
 import '../models/alarm.dart';
+import '../services/permission_requester_service.dart';
 import '../util/date_time_parser.dart';
 import '../viewmodels/alarm_vm.dart';
 import 'screen_mixin.dart';
@@ -57,40 +57,9 @@ class _AlarmPageState extends State<AlarmPage> with ScreenMixin {
   void initState() {
     super.initState();
 
-    _requestMultiplePermissions();
+    PermissionRequesterService.requestMultiplePermissions();
 
     _initPlatformState();
-  }
-
-  void _requestMultiplePermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.storage,
-      Permission
-          .manageExternalStorage, // Android 11 (API level 30) or higher only
-      Permission.microphone,
-      Permission.mediaLibrary,
-      Permission.speech,
-      Permission.audio,
-      Permission.videos,
-      Permission.notification
-    ].request();
-
-    // Vous pouvez maintenant vérifier l'état de chaque permission
-    if (!statuses[Permission.storage]!.isGranted ||
-        !statuses[Permission.manageExternalStorage]!.isGranted ||
-        !statuses[Permission.microphone]!.isGranted ||
-        !statuses[Permission.mediaLibrary]!.isGranted ||
-        !statuses[Permission.speech]!.isGranted ||
-        !statuses[Permission.audio]!.isGranted ||
-        !statuses[Permission.videos]!.isGranted ||
-        !statuses[Permission.notification]!.isGranted) {
-      // Une ou plusieurs permissions n'ont pas été accordées.
-      // Vous pouvez désactiver les fonctionnalités correspondantes dans
-      // votre application ou montrer une alerte à l'utilisateur.
-    } else {
-      // Toutes les permissions ont été accordées, vous pouvez continuer
-      // avec vos fonctionnalités.
-    }
   }
 
   Future<void> _initPlatformState() async {
