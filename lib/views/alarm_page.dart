@@ -83,7 +83,17 @@ class _AlarmPageState extends State<AlarmPage> with ScreenMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Alarm Manager")),
+      appBar: AppBar(
+        title: const Text(
+          "Alarm Manager",
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: const Color(0xFF3D3EC2),
+      ),
       body: Consumer<AlarmVM>(
         builder: (context, viewModel, child) => ListView.builder(
           itemCount: viewModel.alarms.length,
