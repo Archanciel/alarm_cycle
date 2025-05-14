@@ -54,7 +54,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        minSdkVersion 19
+        minSdkVersion flutter.minSdkVersion
         multiDexEnabled true
     }
 
