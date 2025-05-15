@@ -80,8 +80,6 @@ class AlarmVM with ChangeNotifier {
   AudioPlayerVM audioPlayerVM = AudioPlayerVM();
 
   static const List<String> audioFileNames = [
-    'Sirdalud.mp3',
-    'Lioresal.mp3',
     'ArrosePlante.mp3',
     'LaveTesCh.mp3',
     // other audio files ...
