@@ -1,0 +1,2 @@
+C:/development/flutter/alarm_cycle/android/app/.cxx/Debug/2i69203u/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/development/flutter/alarm_cycle/android/app/.cxx/Debug/2i69203u/armeabi-v7a/CMakeFiles/rebuild_cache.dir

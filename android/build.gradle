@@ -1,38 +1,16 @@
-buildscript {
-    ext.kotlin_version = '1.8.20'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-
-    ext {
-       compileSdkVersion   = 33                // or latest
-       targetSdkVersion    = 33                // or latest
-       appCompatVersion    = "1.4.2"           // or latest
-    }
-}
+// This file is now minimal because plugin versions are managed in settings.gradle
 
 allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            // [required] background_fetch
-            url "${project(':background_fetch').projectDir}/libs"
-        }
     }
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(':app')
 }
 

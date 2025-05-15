@@ -9,15 +9,21 @@ import 'package:provider/provider.dart';
 import 'viewmodels/alarm_vm.dart';
 import 'views/alarm_page.dart';
 
+@pragma('vm:entry-point')
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+  final alarmVM = AlarmVM();
+  await alarmVM.checkAlarmsPeriodically(task.taskId);
+}
+
 void main() {
+  BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+
+  final alarmVM = AlarmVM(); // s'assure que c'est l'instance unique
+
   runApp(ChangeNotifierProvider(
-    create: (context) => AlarmVM(),
+    create: (context) => alarmVM,
     child: const MyApp(),
   ));
-
-  BackgroundFetch.registerHeadlessTask(
-    AlarmVM().checkAlarmsPeriodically,
-  );
 }
 
 class MyApp extends StatelessWidget {
@@ -34,4 +40,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
