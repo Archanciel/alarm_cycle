@@ -1,11 +1,5 @@
 // This file is now minimal because plugin versions are managed in settings.gradle
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
 
 rootProject.buildDir = '../build'
 
