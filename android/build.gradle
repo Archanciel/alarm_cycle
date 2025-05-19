@@ -1,6 +1,3 @@
-// This file is now minimal because plugin versions are managed in settings.gradle
-
-
 rootProject.buildDir = '../build'
 
 subprojects {
